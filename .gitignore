@@ -216,3 +216,26 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+.env
+# Local cache
+cache/# ==========================================
+# SIH PROJECT DATA
+# ==========================================
+
+# Raw data - downloaded/generated locally
+data/raw/
+data/flood_event/
+
+# Large generated spatial datasets
+data/processed/*.geojson
+data/processed/flood_labels/
+
+# Large ML dataset (>100 MB)
+data/processed/inundation_risk_ml_dataset.csv
+
+# Local inspection/debug files
+inspect_stage1_inputs.py
+stage1_inspection_report.txt
+
+# Local cache
+cache/
