@@ -173,7 +173,7 @@ def build_event(spatial, rainfall, ts_text, episode_id, filename):
     for col in WEATHER_FEATURES:
         result[col] = weather[col]
 
-    result["timestamp"] = ts
+    result["timestamp"] = ts.strftime("%Y-%m-%d %H:%M:%S")
     result["episode_id"] = episode_id
 
     result["label"] = pd.to_numeric(result["label"]).astype(int)
@@ -282,6 +282,22 @@ def main():
     print("\nMODEL_FEATURES:")
     for feature in MODEL_FEATURES:
         print(f" - {feature}")
+
+    # Normalize timestamps before CSV write. Midnight datetimes must not
+    # serialize as date-only strings (e.g. "2021-11-12").
+    TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+    dataset["timestamp"] = pd.to_datetime(dataset["timestamp"]).dt.strftime(
+        TIMESTAMP_FORMAT
+    )
+    bad_ts = dataset.loc[
+        ~dataset["timestamp"].str.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"),
+        "timestamp",
+    ]
+    if len(bad_ts):
+        fail(
+            "Timestamp strings are not YYYY-MM-DD HH:MM:SS. "
+            f"Examples: {bad_ts.unique()[:10].tolist()}"
+        )
 
     # Save only the new Stage 1 output.
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

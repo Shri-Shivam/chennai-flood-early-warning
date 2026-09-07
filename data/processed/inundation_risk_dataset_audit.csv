@@ -1,0 +1,160 @@
+section,check,expected,actual,status,notes
+A,dataset file exists,C:\Users\Lenovo\chennai-flood-early-warning\data\processed\inundation_risk_ml_dataset.csv,FOUND,PASS,
+A,raw unique timestamp strings in CSV,,2021-11-08 23:00:00 (n=70626) | 2021-11-10 11:00:00 (n=70626) | 2021-11-10 18:00:00 (n=70626) | 2021-11-12 00:00:00 (n=70626) | 2021-11-28 06:00:00 (n=70626),INFO,
+A,timestamp strings include full date and time,all timestamps stored as YYYY-MM-DD HH:MM:SS,all full datetimes,PASS,CSV was not modified. Date-only values are parsed as 00:00:00 for audit comparisons.
+A,"shape (rows, cols)","(353130, 30)","(353130, 30)",PASS,
+A,columns,,"cell_id, centroid_lon, centroid_lat, elevation, slope_degrees, distance_to_drainage, label, label_meaning, temperature_2m, relative_humidity_2m, surface_pressure, wind_speed_10m, precipitation, rain_lag_1h, rain_lag_3h, rain_lag_6h, rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, pressure_change_3h, pressure_change_6h, humidity_change_3h, humidity_change_6h, hour, month, day_of_year, timestamp, episode_id",INFO,
+A,dtype:cell_id,,int64,INFO,
+A,dtype:centroid_lon,,float64,INFO,
+A,dtype:centroid_lat,,float64,INFO,
+A,dtype:elevation,,float64,INFO,
+A,dtype:slope_degrees,,float64,INFO,
+A,dtype:distance_to_drainage,,float64,INFO,
+A,dtype:label,,int64,INFO,
+A,dtype:label_meaning,,str,INFO,
+A,dtype:temperature_2m,,float64,INFO,
+A,dtype:relative_humidity_2m,,float64,INFO,
+A,dtype:surface_pressure,,float64,INFO,
+A,dtype:wind_speed_10m,,float64,INFO,
+A,dtype:precipitation,,float64,INFO,
+A,dtype:rain_lag_1h,,float64,INFO,
+A,dtype:rain_lag_3h,,float64,INFO,
+A,dtype:rain_lag_6h,,float64,INFO,
+A,dtype:rain_1h,,float64,INFO,
+A,dtype:rain_3h,,float64,INFO,
+A,dtype:rain_6h,,float64,INFO,
+A,dtype:rain_12h,,float64,INFO,
+A,dtype:rain_24h,,float64,INFO,
+A,dtype:pressure_change_3h,,float64,INFO,
+A,dtype:pressure_change_6h,,float64,INFO,
+A,dtype:humidity_change_3h,,float64,INFO,
+A,dtype:humidity_change_6h,,float64,INFO,
+A,dtype:hour,,float64,INFO,
+A,dtype:month,,float64,INFO,
+A,dtype:day_of_year,,float64,INFO,
+A,dtype:timestamp,,datetime64[us],INFO,
+A,dtype:episode_id,,str,INFO,
+A,timestamp range,,2021-11-08 23:00:00 to 2021-11-28 06:00:00,INFO,
+A,unique cells,70626,70626,PASS,
+A,unique timestamps,5,5,PASS,
+A,unique episodes,2,2,PASS,
+B,duplicate cell_id row-count (repeated values),,282504,INFO,Expected: each cell repeats across timestamps (not a uniqueness failure by itself).
+B,duplicate timestamp row-count (repeated values),,353125,INFO,Expected: each timestamp repeats across cells (not a uniqueness failure by itself).
+B,duplicate cell_id + timestamp,0 duplicates; 70626 cells x 5 timestamps = 353130 unique pairs,0 duplicate rows; 353130 unique pairs,PASS,
+B,duplicate cell_id + timestamp + episode_id,0,0,PASS,
+B,expected panel size,70626 cells x 5 timestamps = 353130 rows,353130,PASS,
+C,episode assignment vs defined Episode_1 / Episode_2,"Episode_1: 2021-11-08 23:00, 2021-11-10 11:00, 2021-11-10 18:00, 2021-11-12 00:00; Episode_2: 2021-11-28 06:00",exact match,PASS,
+C,Episode_1 timestamps,,"2021-11-08 23:00:00, 2021-11-10 11:00:00, 2021-11-10 18:00:00, 2021-11-12 00:00:00",INFO,
+C,Episode_2 timestamps,,2021-11-28 06:00:00,INFO,
+D,label values found,,"[np.int64(0), np.int64(1), np.int64(2)]",INFO,
+D,label set,"{0,1,2}","{0, 1, 2}",PASS,
+D,label counts 2021-11-08 23:00:00,class0=69715 class1=49 class2=862 total=70626,class0=69715 class1=49 class2=862 total=70626,PASS,
+D,label counts 2021-11-10 11:00:00,class0=69670 class1=335 class2=621 total=70626,class0=69670 class1=335 class2=621 total=70626,PASS,
+D,label counts 2021-11-10 18:00:00,class0=69708 class1=477 class2=441 total=70626,class0=69708 class1=477 class2=441 total=70626,PASS,
+D,label counts 2021-11-12 00:00:00,class0=69727 class1=103 class2=796 total=70626,class0=69727 class1=103 class2=796 total=70626,PASS,
+D,label counts 2021-11-28 06:00:00,class0=69724 class1=40 class2=862 total=70626,class0=69724 class1=40 class2=862 total=70626,PASS,
+D,overall label counts,class0=348544 class1=1004 class2=3582,class0=348544 class1=1004 class2=3582,PASS,
+E,missing/null/inf:cell_id,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:centroid_lon,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:centroid_lat,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:elevation,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:slope_degrees,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:distance_to_drainage,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:label,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:label_meaning,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:temperature_2m,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:relative_humidity_2m,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:surface_pressure,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:wind_speed_10m,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:precipitation,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_lag_1h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_lag_3h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_lag_6h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_1h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_3h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_6h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_12h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:rain_24h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:pressure_change_3h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:pressure_change_6h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:humidity_change_3h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:humidity_change_6h,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:hour,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:month,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:day_of_year,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:timestamp,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+E,missing/null/inf:episode_id,"0 NaN, 0 null, 0 inf","NaN=0, null=0, inf=0",PASS,
+F,exact rainfall timestamp matches,all 5 inundation timestamps present exactly,"5 exact matches: 2021-11-08 23:00:00, 2021-11-10 11:00:00, 2021-11-10 18:00:00, 2021-11-12 00:00:00, 2021-11-28 06:00:00",PASS,
+F,missing rainfall timestamp matches,none,none,PASS,
+F,unexpected inundation timestamps,none beyond the five defined events,none,PASS,
+G,elevation missing values,0,0,PASS,
+G,elevation numeric range,,min=-64 p25=10.1671 median=22.6085 p75=40.3439 max=379.095 mean=27.6923 std=24.2921,INFO,
+G,slope_degrees missing values,0,0,PASS,
+G,slope_degrees numeric range,,min=0 p25=0.753856 median=1.32764 p75=2.11001 max=27.2271 mean=1.68056 std=1.77077,INFO,
+G,distance_to_drainage missing values,0,0,PASS,
+G,distance_to_drainage numeric range,,min=0.0359438 p25=527.12 median=1254.3 p75=2502.97 max=13045 mean=1758.22 std=1669.44,INFO,
+G,geometry retained in dataset,,NO geometry column in CSV,INFO,Spatial geometry is not retained in inundation_risk_ml_dataset.csv; centroids are present.
+H,baseline AI #2 features exist exactly,"rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, elevation, slope_degrees, distance_to_drainage",all present,PASS,
+H,forbidden_input:target,must not be used as model input,absent,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:future_6h_rain,must not be used as model input,absent,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:cell_id,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:timestamp,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:episode_id,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:centroid_lon,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:centroid_lat,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:label,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,forbidden_input:label_meaning,must not be used as model input,present,INFO,"identifier, target-related, centroid, or future-derived"
+H,future-derived columns present,,none,INFO,
+I,class 2 2021-11-08 23:00:00,,count=862 percent=1.2205%,INFO,
+I,class 2 2021-11-10 11:00:00,,count=621 percent=0.8793%,INFO,
+I,class 2 2021-11-10 18:00:00,,count=441 percent=0.6244%,INFO,
+I,class 2 2021-11-12 00:00:00,,count=796 percent=1.1271%,INFO,
+I,class 2 2021-11-28 06:00:00,,count=862 percent=1.2205%,INFO,
+I,class 2 overall,,count=3582 percent=1.0144%,INFO,
+I,class0_rain_1h_distribution,descriptive only,n=348544 min=0.2 median=0.9 mean=1.319898492012486 max=3.4,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_rain_1h_distribution,descriptive only,n=1004 min=0.2 median=1.4 mean=2.1730079681274894 max=3.4,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_rain_1h_distribution,descriptive only,n=3582 min=0.2 median=0.9 mean=1.090787269681742 max=3.4,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_rain_3h_distribution,descriptive only,n=348544 min=0.3999999999999929 median=2.499999999999993 mean=3.319718313900104 max=8.199999999999996,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_rain_3h_distribution,descriptive only,n=1004 min=0.3999999999999929 median=3.7999999999999945 mean=5.387350597609555 max=8.199999999999996,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_rain_3h_distribution,descriptive only,n=3582 min=0.3999999999999929 median=2.499999999999993 mean=2.7679508654382956 max=8.199999999999996,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_rain_6h_distribution,descriptive only,n=348544 min=0.4000000000000142 median=6.500000000000015 mean=7.658914799853114 max=16.00000000000001,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_rain_6h_distribution,descriptive only,n=1004 min=0.4000000000000142 median=12.600000000000009 mean=12.242430278884472 max=16.00000000000001,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_rain_6h_distribution,descriptive only,n=3582 min=0.4000000000000142 median=6.500000000000015 mean=6.481183696259085 max=16.00000000000001,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_rain_12h_distribution,descriptive only,n=348544 min=3.3000000000000016 median=15.000000000000002 mean=18.460446600716125 max=30.8,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_rain_12h_distribution,descriptive only,n=1004 min=3.3000000000000016 median=28.4 mean=23.30229083665339 max=30.8,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_rain_12h_distribution,descriptive only,n=3582 min=3.3000000000000016 median=15.000000000000002 mean=17.059296482412062 max=30.8,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_rain_24h_distribution,descriptive only,n=348544 min=14.099999999999996 median=27.2 mean=56.56879246235768 max=186.3,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_rain_24h_distribution,descriptive only,n=1004 min=14.099999999999996 median=34.599999999999994 mean=44.19621513944223 max=186.3,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_rain_24h_distribution,descriptive only,n=3582 min=14.099999999999996 median=27.2 mean=59.16990508096036 max=186.3,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_elevation_distribution,descriptive only,n=348544 min=-64.0 median=22.83596611022949 mean=27.853382592497493 max=379.0946044921875,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_elevation_distribution,descriptive only,n=1004 min=0.4011470079421997 median=8.958184242248535 mean=14.645037287675526 max=79.05854034423828,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_elevation_distribution,descriptive only,n=3582 min=0.4011470079421997 median=9.922045707702637 mean=15.67775454872617 max=97.41056823730467,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_slope_degrees_distribution,descriptive only,n=348544 min=0.0 median=1.3410402304949076 mean=1.6920770987590863 max=27.22708202845252,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_slope_degrees_distribution,descriptive only,n=1004 min=0.0 median=0.5422790521488472 mean=0.7711080897094084 max=12.297065454623676,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_slope_degrees_distribution,descriptive only,n=3582 min=0.0 median=0.573972082024992 mean=0.8150508645571267 max=17.317535910968576,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class0_distance_to_drainage_distribution,descriptive only,n=348544 min=0.035943765 median=1252.1111 mean=1759.900843243205 max=13045.033,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class1_distance_to_drainage_distribution,descriptive only,n=1004 min=4.3357368 median=1438.0043 mean=1652.7495395067729 max=4412.3906,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+I,class2_distance_to_drainage_distribution,descriptive only,n=3582 min=4.3357368 median=1352.7671 mean=1624.323278241262 max=4317.4097,INFO,class 2 compared descriptively with class 0 and class 1; no model trained
+J,unique cells at 2021-11-08 23:00:00,70626,70626,PASS,
+J,unique cells at 2021-11-10 11:00:00,70626,70626,PASS,
+J,unique cells at 2021-11-10 18:00:00,70626,70626,PASS,
+J,unique cells at 2021-11-12 00:00:00,70626,70626,PASS,
+J,unique cells at 2021-11-28 06:00:00,70626,70626,PASS,
+J,same spatial cells appear across timestamps,identical cell_id set at every timestamp,yes,PASS,
+J,cells in Episode_1,,70626 unique cells across 4 timestamp(s),INFO,
+J,cell panel completeness in Episode_1,70626,70626,PASS,
+J,cells in Episode_2,,70626 unique cells across 1 timestamp(s),INFO,
+J,cell panel completeness in Episode_2,70626,70626,PASS,
+J,class 1 at 2021-11-08 23:00:00,,rows=49 unique_cells=49,INFO,
+J,class 1 at 2021-11-10 11:00:00,,rows=335 unique_cells=335,INFO,
+J,class 1 at 2021-11-10 18:00:00,,rows=477 unique_cells=477,INFO,
+J,class 1 at 2021-11-12 00:00:00,,rows=103 unique_cells=103,INFO,
+J,class 1 at 2021-11-28 06:00:00,,rows=40 unique_cells=40,INFO,
+K,future rainfall columns in inundation dataset,absent (do not use future rainfall),none,PASS,future_* columns would be leakage if used as AI #2 inputs
+K,AI #1 rainfall target column leaked into inundation dataset,absent,none,PASS,rainfall_ml_dataset.csv contains target/future_6h_rain; those must not be joined in yet
+K,accidental AI #1 prediction columns,absent,none,PASS,Do not add AI #1 predictions as a feature yet
+K,post-event / depth / arrival variables,absent,none,PASS,
+K,inundation label column,,present as 'label' / 'label_meaning',INFO,This is the AI #2 outcome. It must not be used as a model input. Class 2 must not be recoded as 0.
+K,timestamp-derived calendar columns,,"hour, month, day_of_year",INFO,"Derived from timestamp, not from the inundation target. Not baseline AI #2 features. Do not treat as target leakage."
+K,duplicated rainfall information,,rain_1h identical to rain_lag_1h: True; precipitation identical to rain_1h: False,INFO,Reported only; columns were not dropped.
+K,weather features constant within timestamp (city-level broadcast),,"temperature_2m, relative_humidity_2m, surface_pressure, wind_speed_10m, precipitation, rain_lag_1h, rain_lag_3h, rain_lag_6h, rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, pressure_change_3h, pressure_change_6h, humidity_change_3h, humidity_change_6h, hour, month, day_of_year",INFO,Not target leakage. Rainfall/weather is not cell-specific in this dataset.

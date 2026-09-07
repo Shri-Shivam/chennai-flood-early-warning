@@ -1,0 +1,422 @@
+
+========================================================================
+SIH26071 STAGE 2 - INUNDATION RISK DATASET AUDIT
+========================================================================
+Read-only audit. No training. No file deletions. No silent repairs.
+
+========================================================================
+A. BASIC STRUCTURE
+========================================================================
+[PASS] dataset file exists
+      expected: C:\Users\Lenovo\chennai-flood-early-warning\data\processed\inundation_risk_ml_dataset.csv
+      actual:   FOUND
+[INFO] raw unique timestamp strings in CSV: 2021-11-08 23:00:00 (n=70626) | 2021-11-10 11:00:00 (n=70626) | 2021-11-10 18:00:00 (n=70626) | 2021-11-12 00:00:00 (n=70626) | 2021-11-28 06:00:00 (n=70626)
+[PASS] timestamp strings include full date and time
+      expected: all timestamps stored as YYYY-MM-DD HH:MM:SS
+      actual:   all full datetimes
+      notes:    CSV was not modified. Date-only values are parsed as 00:00:00 for audit comparisons.
+[PASS] shape (rows, cols)
+      expected: (353130, 30)
+      actual:   (353130, 30)
+[INFO] columns: cell_id, centroid_lon, centroid_lat, elevation, slope_degrees, distance_to_drainage, label, label_meaning, temperature_2m, relative_humidity_2m, surface_pressure, wind_speed_10m, precipitation, rain_lag_1h, rain_lag_3h, rain_lag_6h, rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, pressure_change_3h, pressure_change_6h, humidity_change_3h, humidity_change_6h, hour, month, day_of_year, timestamp, episode_id
+dtypes:
+  - cell_id: int64
+  - centroid_lon: float64
+  - centroid_lat: float64
+  - elevation: float64
+  - slope_degrees: float64
+  - distance_to_drainage: float64
+  - label: int64
+  - label_meaning: str
+  - temperature_2m: float64
+  - relative_humidity_2m: float64
+  - surface_pressure: float64
+  - wind_speed_10m: float64
+  - precipitation: float64
+  - rain_lag_1h: float64
+  - rain_lag_3h: float64
+  - rain_lag_6h: float64
+  - rain_1h: float64
+  - rain_3h: float64
+  - rain_6h: float64
+  - rain_12h: float64
+  - rain_24h: float64
+  - pressure_change_3h: float64
+  - pressure_change_6h: float64
+  - humidity_change_3h: float64
+  - humidity_change_6h: float64
+  - hour: float64
+  - month: float64
+  - day_of_year: float64
+  - timestamp: datetime64[us]
+  - episode_id: str
+[INFO] timestamp range: 2021-11-08 23:00:00 to 2021-11-28 06:00:00
+[PASS] unique cells
+      expected: 70626
+      actual:   70626
+[PASS] unique timestamps
+      expected: 5
+      actual:   5
+[PASS] unique episodes
+      expected: 2
+      actual:   2
+
+========================================================================
+B. DUPLICATES
+========================================================================
+[INFO] duplicate cell_id row-count (repeated values): 282504
+      notes:    Expected: each cell repeats across timestamps (not a uniqueness failure by itself).
+[INFO] duplicate timestamp row-count (repeated values): 353125
+      notes:    Expected: each timestamp repeats across cells (not a uniqueness failure by itself).
+[PASS] duplicate cell_id + timestamp
+      expected: 0 duplicates; 70626 cells x 5 timestamps = 353130 unique pairs
+      actual:   0 duplicate rows; 353130 unique pairs
+[PASS] duplicate cell_id + timestamp + episode_id
+      expected: 0
+      actual:   0
+[PASS] expected panel size
+      expected: 70626 cells x 5 timestamps = 353130 rows
+      actual:   353130
+
+========================================================================
+C. EPISODE CONSISTENCY
+========================================================================
+Observed timestamp -> episode_id:
+  2021-11-08 23:00:00 -> Episode_1
+  2021-11-10 11:00:00 -> Episode_1
+  2021-11-10 18:00:00 -> Episode_1
+  2021-11-12 00:00:00 -> Episode_1
+  2021-11-28 06:00:00 -> Episode_2
+[PASS] episode assignment vs defined Episode_1 / Episode_2
+      expected: Episode_1: 2021-11-08 23:00, 2021-11-10 11:00, 2021-11-10 18:00, 2021-11-12 00:00; Episode_2: 2021-11-28 06:00
+      actual:   exact match
+[INFO] Episode_1 timestamps: 2021-11-08 23:00:00, 2021-11-10 11:00:00, 2021-11-10 18:00:00, 2021-11-12 00:00:00
+[INFO] Episode_2 timestamps: 2021-11-28 06:00:00
+
+========================================================================
+D. LABEL AUDIT
+========================================================================
+[INFO] label values found: [np.int64(0), np.int64(1), np.int64(2)]
+[PASS] label set
+      expected: {0,1,2}
+      actual:   {0, 1, 2}
+Per-timestamp class counts (do not change expected values; flag mismatches):
+  2021-11-08 23:00:00
+    class0=69715 (98.7101%)  class1=49 (0.0694%)  class2=862 (1.2205%)  total=70626
+[PASS] label counts 2021-11-08 23:00:00
+      expected: class0=69715 class1=49 class2=862 total=70626
+      actual:   class0=69715 class1=49 class2=862 total=70626
+  2021-11-10 11:00:00
+    class0=69670 (98.6464%)  class1=335 (0.4743%)  class2=621 (0.8793%)  total=70626
+[PASS] label counts 2021-11-10 11:00:00
+      expected: class0=69670 class1=335 class2=621 total=70626
+      actual:   class0=69670 class1=335 class2=621 total=70626
+  2021-11-10 18:00:00
+    class0=69708 (98.7002%)  class1=477 (0.6754%)  class2=441 (0.6244%)  total=70626
+[PASS] label counts 2021-11-10 18:00:00
+      expected: class0=69708 class1=477 class2=441 total=70626
+      actual:   class0=69708 class1=477 class2=441 total=70626
+  2021-11-12 00:00:00
+    class0=69727 (98.7271%)  class1=103 (0.1458%)  class2=796 (1.1271%)  total=70626
+[PASS] label counts 2021-11-12 00:00:00
+      expected: class0=69727 class1=103 class2=796 total=70626
+      actual:   class0=69727 class1=103 class2=796 total=70626
+  2021-11-28 06:00:00
+    class0=69724 (98.7228%)  class1=40 (0.0566%)  class2=862 (1.2205%)  total=70626
+[PASS] label counts 2021-11-28 06:00:00
+      expected: class0=69724 class1=40 class2=862 total=70626
+      actual:   class0=69724 class1=40 class2=862 total=70626
+Overall: class0=348544 class1=1004 class2=3582 total=353130
+[PASS] overall label counts
+      expected: class0=348544 class1=1004 class2=3582
+      actual:   class0=348544 class1=1004 class2=3582
+Class 2 is uncertain and must not be treated as class 0.
+
+========================================================================
+E. MISSING VALUES
+========================================================================
+[PASS] missing/null/inf:cell_id
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:centroid_lon
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:centroid_lat
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:elevation
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:slope_degrees
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:distance_to_drainage
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:label
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:label_meaning
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:temperature_2m
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:relative_humidity_2m
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:surface_pressure
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:wind_speed_10m
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:precipitation
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_lag_1h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_lag_3h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_lag_6h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_1h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_3h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_6h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_12h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:rain_24h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:pressure_change_3h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:pressure_change_6h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:humidity_change_3h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:humidity_change_6h
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:hour
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:month
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:day_of_year
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:timestamp
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+[PASS] missing/null/inf:episode_id
+      expected: 0 NaN, 0 null, 0 inf
+      actual:   NaN=0, null=0, inf=0
+No missing, null, or infinite values found in any column.
+
+========================================================================
+F. WEATHER TIMESTAMP ALIGNMENT
+========================================================================
+Exact timestamp match only. Nearest-timestamp matching is not used.
+Exact matches in rainfall_ml_dataset.csv:
+  MATCH 2021-11-08 23:00:00
+  MATCH 2021-11-10 11:00:00
+  MATCH 2021-11-10 18:00:00
+  MATCH 2021-11-12 00:00:00
+  MATCH 2021-11-28 06:00:00
+[PASS] exact rainfall timestamp matches
+      expected: all 5 inundation timestamps present exactly
+      actual:   5 exact matches: 2021-11-08 23:00:00, 2021-11-10 11:00:00, 2021-11-10 18:00:00, 2021-11-12 00:00:00, 2021-11-28 06:00:00
+[PASS] missing rainfall timestamp matches
+      expected: none
+      actual:   none
+[PASS] unexpected inundation timestamps
+      expected: none beyond the five defined events
+      actual:   none
+
+========================================================================
+G. SPATIAL FEATURE AUDIT
+========================================================================
+Outliers are reported, not removed.
+[PASS] elevation missing values
+      expected: 0
+      actual:   0
+[INFO] elevation numeric range: min=-64 p25=10.1671 median=22.6085 p75=40.3439 max=379.095 mean=27.6923 std=24.2921
+[PASS] slope_degrees missing values
+      expected: 0
+      actual:   0
+[INFO] slope_degrees numeric range: min=0 p25=0.753856 median=1.32764 p75=2.11001 max=27.2271 mean=1.68056 std=1.77077
+[PASS] distance_to_drainage missing values
+      expected: 0
+      actual:   0
+[INFO] distance_to_drainage numeric range: min=0.0359438 p25=527.12 median=1254.3 p75=2502.97 max=13045 mean=1758.22 std=1669.44
+[INFO] geometry retained in dataset: NO geometry column in CSV
+      notes:    Spatial geometry is not retained in inundation_risk_ml_dataset.csv; centroids are present.
+
+========================================================================
+H. MODEL FEATURE AUDIT
+========================================================================
+[PASS] baseline AI #2 features exist exactly
+      expected: rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, elevation, slope_degrees, distance_to_drainage
+      actual:   all present
+Columns that MUST NOT be used as AI #2 model inputs:
+  - target: not in this dataset (still forbidden if added later)
+  - future_6h_rain: not in this dataset (still forbidden if added later)
+  - cell_id: PRESENT (do not use as input)
+  - timestamp: PRESENT (do not use as input)
+  - episode_id: PRESENT (do not use as input)
+  - centroid_lon: PRESENT (do not use as input)
+  - centroid_lat: PRESENT (do not use as input)
+  - label: PRESENT (do not use as input)
+  - label_meaning: PRESENT (do not use as input)
+[INFO] future-derived columns present: none
+
+========================================================================
+I. CLASS 2 AUDIT
+========================================================================
+Descriptive only. Class 2 is not treated as class 0. No model is trained.
+[INFO] class 2 2021-11-08 23:00:00: count=862 percent=1.2205%
+[INFO] class 2 2021-11-10 11:00:00: count=621 percent=0.8793%
+[INFO] class 2 2021-11-10 18:00:00: count=441 percent=0.6244%
+[INFO] class 2 2021-11-12 00:00:00: count=796 percent=1.1271%
+[INFO] class 2 2021-11-28 06:00:00: count=862 percent=1.2205%
+[INFO] class 2 overall: count=3582 percent=1.0144%
+Baseline feature distributions by label (descriptive):
+  Feature: rain_1h
+    class 0: n=348544 min=0.2 median=0.9 mean=1.3199 max=3.4
+    class 1: n=1004 min=0.2 median=1.4 mean=2.17301 max=3.4
+    class 2: n=3582 min=0.2 median=0.9 mean=1.09079 max=3.4
+  Feature: rain_3h
+    class 0: n=348544 min=0.4 median=2.5 mean=3.31972 max=8.2
+    class 1: n=1004 min=0.4 median=3.8 mean=5.38735 max=8.2
+    class 2: n=3582 min=0.4 median=2.5 mean=2.76795 max=8.2
+  Feature: rain_6h
+    class 0: n=348544 min=0.4 median=6.5 mean=7.65891 max=16
+    class 1: n=1004 min=0.4 median=12.6 mean=12.2424 max=16
+    class 2: n=3582 min=0.4 median=6.5 mean=6.48118 max=16
+  Feature: rain_12h
+    class 0: n=348544 min=3.3 median=15 mean=18.4604 max=30.8
+    class 1: n=1004 min=3.3 median=28.4 mean=23.3023 max=30.8
+    class 2: n=3582 min=3.3 median=15 mean=17.0593 max=30.8
+  Feature: rain_24h
+    class 0: n=348544 min=14.1 median=27.2 mean=56.5688 max=186.3
+    class 1: n=1004 min=14.1 median=34.6 mean=44.1962 max=186.3
+    class 2: n=3582 min=14.1 median=27.2 mean=59.1699 max=186.3
+  Feature: elevation
+    class 0: n=348544 min=-64 median=22.836 mean=27.8534 max=379.095
+    class 1: n=1004 min=0.401147 median=8.95818 mean=14.645 max=79.0585
+    class 2: n=3582 min=0.401147 median=9.92205 mean=15.6778 max=97.4106
+  Feature: slope_degrees
+    class 0: n=348544 min=0 median=1.34104 mean=1.69208 max=27.2271
+    class 1: n=1004 min=0 median=0.542279 mean=0.771108 max=12.2971
+    class 2: n=3582 min=0 median=0.573972 mean=0.815051 max=17.3175
+  Feature: distance_to_drainage
+    class 0: n=348544 min=0.0359438 median=1252.11 mean=1759.9 max=13045
+    class 1: n=1004 min=4.33574 median=1438 mean=1652.75 max=4412.39
+    class 2: n=3582 min=4.33574 median=1352.77 mean=1624.32 max=4317.41
+Class 2 vs class 0 / class 1 (median comparison of baseline features):
+  rain_1h: class0_median=0.9 class1_median=1.4 class2_median=0.9
+  rain_3h: class0_median=2.5 class1_median=3.8 class2_median=2.5
+  rain_6h: class0_median=6.5 class1_median=12.6 class2_median=6.5
+  rain_12h: class0_median=15 class1_median=28.4 class2_median=15
+  rain_24h: class0_median=27.2 class1_median=34.6 class2_median=27.2
+  elevation: class0_median=22.836 class1_median=8.95818 class2_median=9.92205
+  slope_degrees: class0_median=1.34104 class1_median=0.542279 class2_median=0.573972
+  distance_to_drainage: class0_median=1252.11 class1_median=1438 class2_median=1352.77
+
+========================================================================
+J. SPATIAL/EPISODE STRUCTURE
+========================================================================
+Unique cells per timestamp:
+  2021-11-08 23:00:00: 70626
+[PASS] unique cells at 2021-11-08 23:00:00
+      expected: 70626
+      actual:   70626
+  2021-11-10 11:00:00: 70626
+[PASS] unique cells at 2021-11-10 11:00:00
+      expected: 70626
+      actual:   70626
+  2021-11-10 18:00:00: 70626
+[PASS] unique cells at 2021-11-10 18:00:00
+      expected: 70626
+      actual:   70626
+  2021-11-12 00:00:00: 70626
+[PASS] unique cells at 2021-11-12 00:00:00
+      expected: 70626
+      actual:   70626
+  2021-11-28 06:00:00: 70626
+[PASS] unique cells at 2021-11-28 06:00:00
+      expected: 70626
+      actual:   70626
+[PASS] same spatial cells appear across timestamps
+      expected: identical cell_id set at every timestamp
+      actual:   yes
+Unique cells per episode:
+[INFO] cells in Episode_1: 70626 unique cells across 4 timestamp(s)
+[PASS] cell panel completeness in Episode_1
+      expected: 70626
+      actual:   70626
+[INFO] cells in Episode_2: 70626 unique cells across 1 timestamp(s)
+[PASS] cell panel completeness in Episode_2
+      expected: 70626
+      actual:   70626
+Class 1 spatial counts per timestamp:
+[INFO] class 1 at 2021-11-08 23:00:00: rows=49 unique_cells=49
+[INFO] class 1 at 2021-11-10 11:00:00: rows=335 unique_cells=335
+[INFO] class 1 at 2021-11-10 18:00:00: rows=477 unique_cells=477
+[INFO] class 1 at 2021-11-12 00:00:00: rows=103 unique_cells=103
+[INFO] class 1 at 2021-11-28 06:00:00: rows=40 unique_cells=40
+Spatial cells are highly correlated with neighbors; do not use random cell-level splits.
+Final validation must be episode-aware and spatially blocked.
+Only two independently verified episodes exist; generalization remains exploratory.
+
+========================================================================
+K. DATA LEAKAGE AUDIT
+========================================================================
+Report only. Nothing is deleted.
+[PASS] future rainfall columns in inundation dataset
+      expected: absent (do not use future rainfall)
+      actual:   none
+      notes:    future_* columns would be leakage if used as AI #2 inputs
+[PASS] AI #1 rainfall target column leaked into inundation dataset
+      expected: absent
+      actual:   none
+      notes:    rainfall_ml_dataset.csv contains target/future_6h_rain; those must not be joined in yet
+[PASS] accidental AI #1 prediction columns
+      expected: absent
+      actual:   none
+      notes:    Do not add AI #1 predictions as a feature yet
+[PASS] post-event / depth / arrival variables
+      expected: absent
+      actual:   none
+[INFO] inundation label column: present as 'label' / 'label_meaning'
+      notes:    This is the AI #2 outcome. It must not be used as a model input. Class 2 must not be recoded as 0.
+[INFO] timestamp-derived calendar columns: hour, month, day_of_year
+      notes:    Derived from timestamp, not from the inundation target. Not baseline AI #2 features. Do not treat as target leakage.
+[INFO] duplicated rainfall information: rain_1h identical to rain_lag_1h: True; precipitation identical to rain_1h: False
+      notes:    Reported only; columns were not dropped.
+[INFO] weather features constant within timestamp (city-level broadcast): temperature_2m, relative_humidity_2m, surface_pressure, wind_speed_10m, precipitation, rain_lag_1h, rain_lag_3h, rain_lag_6h, rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, pressure_change_3h, pressure_change_6h, humidity_change_3h, humidity_change_6h, hour, month, day_of_year
+      notes:    Not target leakage. Rainfall/weather is not cell-specific in this dataset.
+
+========================================================================
+STAGE 2 AUDIT SUMMARY
+========================================================================
+PASS checks: 66
+FAIL checks: 0
+INFO rows:   93
+
+STAGE 2 AUDIT COMPLETE
+STATUS: PASS
