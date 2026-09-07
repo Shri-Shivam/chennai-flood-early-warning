@@ -1,0 +1,595 @@
+{
+  "stage": 3,
+  "task": "baseline_inundation_risk_ai2",
+  "dataset_path": "C:\\Users\\Lenovo\\chennai-flood-early-warning\\data\\processed\\inundation_risk_ml_dataset.csv",
+  "feature_list": [
+    "rain_1h",
+    "rain_3h",
+    "rain_6h",
+    "rain_12h",
+    "rain_24h",
+    "elevation",
+    "slope_degrees",
+    "distance_to_drainage"
+  ],
+  "forbidden_features": [
+    "future_6h_rain",
+    "target",
+    "label",
+    "label_meaning",
+    "timestamp",
+    "episode_id",
+    "cell_id",
+    "centroid_x",
+    "centroid_y",
+    "centroid_lon",
+    "centroid_lat"
+  ],
+  "random_seed": 42,
+  "episode_definitions": {
+    "Episode_1": [
+      "2021-11-08 23:00:00",
+      "2021-11-10 11:00:00",
+      "2021-11-10 18:00:00",
+      "2021-11-12 00:00:00"
+    ],
+    "Episode_2": [
+      "2021-11-28 06:00:00"
+    ]
+  },
+  "spatial_block_size_m": 5000.0,
+  "spatial_block_crs": "EPSG:32644",
+  "spatial_buffer_m": 500.0,
+  "inner_folds": 5,
+  "threshold_selection_method": "maximize CSI on inner spatial-block OOF scores from the outer training episode; majority baseline always predicts 0",
+  "n_raw_rows": 353130,
+  "n_binary_rows": 349548,
+  "n_class2_excluded": 3582,
+  "n_cells": 70626,
+  "n_timestamps": 5,
+  "n_spatial_blocks": 225,
+  "experiments": [
+    {
+      "outer_train_episode": "Episode_1",
+      "outer_test_episode": "Episode_2",
+      "thresholds": {
+        "majority_baseline": 1.0,
+        "elevation_drainage_heuristic": 0.8587578771017967,
+        "logistic_regression": 0.7675584925604918,
+        "xgboost": 0.9
+      },
+      "xgboost_selected": {
+        "max_depth": 5,
+        "n_estimators": 100,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8
+      },
+      "xgboost_inner_oof_PR_AUC": 0.03834334028406489,
+      "xgboost_all_configs": [
+        {
+          "config": {
+            "max_depth": 3,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.034318504740821584
+        },
+        {
+          "config": {
+            "max_depth": 3,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.036024512397692936
+        },
+        {
+          "config": {
+            "max_depth": 4,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.038302438575598854
+        },
+        {
+          "config": {
+            "max_depth": 4,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.035346225234027986
+        },
+        {
+          "config": {
+            "max_depth": 5,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.03834334028406489
+        },
+        {
+          "config": {
+            "max_depth": 5,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.03485108404580884
+        }
+      ],
+      "logistic": {
+        "C": 1.0,
+        "penalty": "l2",
+        "solver": "lbfgs",
+        "class_weight": "balanced",
+        "n_train_positive": 964,
+        "n_train_negative": 278820,
+        "scale_pos_weight_equivalent": 289.23236514522824
+      },
+      "heuristic_limits": {
+        "elev_min": -64.0,
+        "elev_max": 379.0946044921875,
+        "drain_min": 0.035943765,
+        "drain_max": 13045.033
+      },
+      "inner_folds": [
+        {
+          "fold": 1,
+          "n_train_rows": 203189,
+          "n_val_rows": 62921,
+          "n_train_cells": 51152,
+          "n_val_cells": 15859,
+          "train_positives": 650,
+          "val_positives": 257,
+          "train_prevalence": 0.003198992071421189,
+          "val_prevalence": 0.0040844868962667475
+        },
+        {
+          "fold": 2,
+          "n_train_rows": 207388,
+          "n_val_rows": 58896,
+          "n_train_cells": 52316,
+          "n_val_cells": 14756,
+          "train_positives": 888,
+          "val_positives": 53,
+          "train_prevalence": 0.0042818292283063625,
+          "val_prevalence": 0.0008998913338766639
+        },
+        {
+          "fold": 3,
+          "n_train_rows": 215245,
+          "n_val_rows": 52355,
+          "n_train_cells": 54208,
+          "n_val_cells": 13174,
+          "train_positives": 755,
+          "val_positives": 144,
+          "train_prevalence": 0.0035076308392761736,
+          "val_prevalence": 0.00275045363384586
+        },
+        {
+          "fold": 4,
+          "n_train_rows": 212339,
+          "n_val_rows": 54203,
+          "n_train_cells": 53477,
+          "n_val_cells": 13655,
+          "train_positives": 725,
+          "val_positives": 210,
+          "train_prevalence": 0.00341435157931421,
+          "val_prevalence": 0.0038743242993930227
+        },
+        {
+          "fold": 5,
+          "n_train_rows": 216127,
+          "n_val_rows": 51409,
+          "n_train_cells": 54358,
+          "n_val_cells": 13015,
+          "train_positives": 612,
+          "val_positives": 300,
+          "train_prevalence": 0.0028316684171806393,
+          "val_prevalence": 0.005835554085860452
+        }
+      ],
+      "class_balance": {
+        "train_episode": "Episode_1",
+        "test_episode": "Episode_2",
+        "train_rows": 279784,
+        "test_rows": 69764,
+        "train_positives": 964,
+        "train_negatives": 278820,
+        "train_prevalence": 0.0034455151116575644,
+        "test_positives": 40,
+        "test_negatives": 69724,
+        "test_prevalence": 0.0005733616191732126
+      }
+    },
+    {
+      "outer_train_episode": "Episode_2",
+      "outer_test_episode": "Episode_1",
+      "thresholds": {
+        "majority_baseline": 1.0,
+        "elevation_drainage_heuristic": 0.9188728284294022,
+        "logistic_regression": 0.8274805355131464,
+        "xgboost": 0.95
+      },
+      "xgboost_selected": {
+        "max_depth": 3,
+        "n_estimators": 100,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8
+      },
+      "xgboost_inner_oof_PR_AUC": 0.0027980326998426532,
+      "xgboost_all_configs": [
+        {
+          "config": {
+            "max_depth": 3,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.0027980326998426532
+        },
+        {
+          "config": {
+            "max_depth": 3,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.002533847515255634
+        },
+        {
+          "config": {
+            "max_depth": 4,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.0025402162163576858
+        },
+        {
+          "config": {
+            "max_depth": 4,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.0023913092065317686
+        },
+        {
+          "config": {
+            "max_depth": 5,
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.002611364936294313
+        },
+        {
+          "config": {
+            "max_depth": 5,
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8
+          },
+          "oof_PR_AUC": 0.0022904373991669696
+        }
+      ],
+      "logistic": {
+        "C": 1.0,
+        "penalty": "l2",
+        "solver": "lbfgs",
+        "class_weight": "balanced",
+        "n_train_positive": 40,
+        "n_train_negative": 69724,
+        "scale_pos_weight_equivalent": 1743.1
+      },
+      "heuristic_limits": {
+        "elev_min": -64.0,
+        "elev_max": 379.0946044921875,
+        "drain_min": 0.035943765,
+        "drain_max": 13045.033
+      },
+      "inner_folds": [
+        {
+          "fold": 1,
+          "n_train_rows": 50693,
+          "n_val_rows": 15675,
+          "n_train_cells": 50693,
+          "n_val_cells": 15675,
+          "train_positives": 39,
+          "val_positives": 0,
+          "train_prevalence": 0.0007693369893279151,
+          "val_prevalence": 0.0
+        },
+        {
+          "fold": 2,
+          "n_train_rows": 51682,
+          "n_val_rows": 14713,
+          "n_train_cells": 51682,
+          "n_val_cells": 14713,
+          "train_positives": 38,
+          "val_positives": 0,
+          "train_prevalence": 0.0007352656630935336,
+          "val_prevalence": 0.0
+        },
+        {
+          "fold": 3,
+          "n_train_rows": 53675,
+          "n_val_rows": 13063,
+          "n_train_cells": 53675,
+          "n_val_cells": 13063,
+          "train_positives": 32,
+          "val_positives": 8,
+          "train_prevalence": 0.0005961807172799254,
+          "val_prevalence": 0.0006124167495981015
+        },
+        {
+          "fold": 4,
+          "n_train_rows": 52967,
+          "n_val_rows": 13514,
+          "n_train_cells": 52967,
+          "n_val_cells": 13514,
+          "train_positives": 28,
+          "val_positives": 9,
+          "train_prevalence": 0.0005286310344176562,
+          "val_prevalence": 0.0006659760248631049
+        },
+        {
+          "fold": 5,
+          "n_train_rows": 53919,
+          "n_val_rows": 12799,
+          "n_train_cells": 53919,
+          "n_val_cells": 12799,
+          "train_positives": 14,
+          "val_positives": 23,
+          "train_prevalence": 0.00025964873235779595,
+          "val_prevalence": 0.0017970153918274866
+        }
+      ],
+      "class_balance": {
+        "train_episode": "Episode_2",
+        "test_episode": "Episode_1",
+        "train_rows": 69764,
+        "test_rows": 279784,
+        "train_positives": 40,
+        "train_negatives": 69724,
+        "train_prevalence": 0.0005733616191732126,
+        "test_positives": 964,
+        "test_negatives": 278820,
+        "test_prevalence": 0.0034455151116575644
+      }
+    }
+  ],
+  "results": [
+    {
+      "model": "majority_baseline",
+      "outer_train_episode": "Episode_1",
+      "outer_test_episode": "Episode_2",
+      "threshold": 1.0,
+      "PR_AUC": 0.0005733616191732126,
+      "CSI": 0.0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.5,
+      "Brier": 0.0005812821413112617,
+      "TP": 0,
+      "FP": 0,
+      "FN": 40,
+      "TN": 69724,
+      "train_rows": 279784,
+      "test_rows": 69764,
+      "train_positives": 964,
+      "train_negatives": 278820,
+      "train_prevalence": 0.0034455151116575644,
+      "test_positives": 40,
+      "test_negatives": 69724,
+      "test_prevalence": 0.0005733616191732126
+    },
+    {
+      "model": "elevation_drainage_heuristic",
+      "outer_train_episode": "Episode_1",
+      "outer_test_episode": "Episode_2",
+      "threshold": 0.8587578771017967,
+      "PR_AUC": 0.0006622921916505796,
+      "CSI": 0.0009431420102398275,
+      "recall": 0.7,
+      "precision": 0.0009435233859010648,
+      "F1": 0.00188450666307713,
+      "ROC_AUC": 0.5878675205094372,
+      "Brier": 0.692647953731578,
+      "TP": 28,
+      "FP": 29648,
+      "FN": 12,
+      "TN": 40076,
+      "train_rows": 279784,
+      "test_rows": 69764,
+      "train_positives": 964,
+      "train_negatives": 278820,
+      "train_prevalence": 0.0034455151116575644,
+      "test_positives": 40,
+      "test_negatives": 69724,
+      "test_prevalence": 0.0005733616191732126
+    },
+    {
+      "model": "logistic_regression",
+      "outer_train_episode": "Episode_1",
+      "outer_test_episode": "Episode_2",
+      "threshold": 0.7675584925604918,
+      "PR_AUC": 0.000714803906591305,
+      "CSI": 0.0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.6007959956399518,
+      "Brier": 0.13006670129000159,
+      "TP": 0,
+      "FP": 749,
+      "FN": 40,
+      "TN": 68975,
+      "train_rows": 279784,
+      "test_rows": 69764,
+      "train_positives": 964,
+      "train_negatives": 278820,
+      "train_prevalence": 0.0034455151116575644,
+      "test_positives": 40,
+      "test_negatives": 69724,
+      "test_prevalence": 0.0005733616191732126
+    },
+    {
+      "model": "xgboost",
+      "outer_train_episode": "Episode_1",
+      "outer_test_episode": "Episode_2",
+      "threshold": 0.9,
+      "PR_AUC": 0.006531193546657868,
+      "CSI": 0.0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.9031508160748092,
+      "Brier": 0.020811538544342832,
+      "TP": 0,
+      "FP": 0,
+      "FN": 40,
+      "TN": 69724,
+      "train_rows": 279784,
+      "test_rows": 69764,
+      "train_positives": 964,
+      "train_negatives": 278820,
+      "train_prevalence": 0.0034455151116575644,
+      "test_positives": 40,
+      "test_negatives": 69724,
+      "test_prevalence": 0.0005733616191732126
+    },
+    {
+      "model": "majority_baseline",
+      "outer_train_episode": "Episode_2",
+      "outer_test_episode": "Episode_1",
+      "threshold": 1.0,
+      "PR_AUC": 0.0034455151116575644,
+      "CSI": 0.0,
+      "recall": 0.0,
+      "precision": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.5,
+      "Brier": 0.003441892802957294,
+      "TP": 0,
+      "FP": 0,
+      "FN": 964,
+      "TN": 278820,
+      "train_rows": 69764,
+      "test_rows": 279784,
+      "train_positives": 40,
+      "train_negatives": 69724,
+      "train_prevalence": 0.0005733616191732126,
+      "test_positives": 964,
+      "test_negatives": 278820,
+      "test_prevalence": 0.0034455151116575644
+    },
+    {
+      "model": "elevation_drainage_heuristic",
+      "outer_train_episode": "Episode_2",
+      "outer_test_episode": "Episode_1",
+      "threshold": 0.9188728284294022,
+      "PR_AUC": 0.003733341485119928,
+      "CSI": 0.003673354054817745,
+      "recall": 0.026970954356846474,
+      "precision": 0.004234527687296417,
+      "F1": 0.00731981981981982,
+      "ROC_AUC": 0.5454392860725148,
+      "Brier": 0.6907319566413239,
+      "TP": 26,
+      "FP": 6114,
+      "FN": 938,
+      "TN": 272706,
+      "train_rows": 69764,
+      "test_rows": 279784,
+      "train_positives": 40,
+      "train_negatives": 69724,
+      "train_prevalence": 0.0005733616191732126,
+      "test_positives": 964,
+      "test_negatives": 278820,
+      "test_prevalence": 0.0034455151116575644
+    },
+    {
+      "model": "logistic_regression",
+      "outer_train_episode": "Episode_2",
+      "outer_test_episode": "Episode_1",
+      "threshold": 0.8274805355131464,
+      "PR_AUC": 0.002602840119416701,
+      "CSI": 0.001392549858258318,
+      "recall": 0.029045643153526972,
+      "precision": 0.0014605393563194408,
+      "F1": 0.0027812267196424137,
+      "ROC_AUC": 0.38538763761685657,
+      "Brier": 0.15371742155979856,
+      "TP": 28,
+      "FP": 19143,
+      "FN": 936,
+      "TN": 259677,
+      "train_rows": 69764,
+      "test_rows": 279784,
+      "train_positives": 40,
+      "train_negatives": 69724,
+      "train_prevalence": 0.0005733616191732126,
+      "test_positives": 964,
+      "test_negatives": 278820,
+      "test_prevalence": 0.0034455151116575644
+    },
+    {
+      "model": "xgboost",
+      "outer_train_episode": "Episode_2",
+      "outer_test_episode": "Episode_1",
+      "threshold": 0.95,
+      "PR_AUC": 0.0037802892827525085,
+      "CSI": 0.004087193460490463,
+      "recall": 0.006224066390041493,
+      "precision": 0.011764705882352941,
+      "F1": 0.008141112618724558,
+      "ROC_AUC": 0.5030978395615667,
+      "Brier": 0.04499914819931949,
+      "TP": 6,
+      "FP": 504,
+      "FN": 958,
+      "TN": 278316,
+      "train_rows": 69764,
+      "test_rows": 279784,
+      "train_positives": 40,
+      "train_negatives": 69724,
+      "train_prevalence": 0.0005733616191732126,
+      "test_positives": 964,
+      "test_negatives": 278820,
+      "test_prevalence": 0.0034455151116575644
+    }
+  ],
+  "leakage_checks": [
+    "CHECK 1 PASS: class 2 excluded from binary training/evaluation; not recoded as 0.",
+    "CHECK 2 PASS: no forbidden identifier/target/centroid/future columns in the feature list.",
+    "CHECK 3 PASS: AI #1 predicted rainfall is not a model input.",
+    "CHECK 4 PASS: no future rainfall feature is used.",
+    "CHECK 5 PASS: hyperparameter search uses inner spatial CV on the outer training episode only.",
+    "CHECK 6 PASS: operating threshold is selected from outer-training OOF scores only.",
+    "CHECK 7 PASS: class weights / scale_pos_weight are computed from training rows only.",
+    "CHECK 8 PASS: inner validation splits unique 5 km spatial blocks, not random cells/rows.",
+    "CHECK 9 PASS: no duplicate cell-timestamp records.",
+    "CHECK 10 PASS: the inundation label is the outcome, not a feature."
+  ]
+}

@@ -1,0 +1,203 @@
+========================================================================
+SIH26071 STAGE 3 - BASELINE INUNDATION-RISK MODEL (AI #2)
+========================================================================
+Exploratory event-generalization evidence only. Not a hydraulic model.
+
+1. DATASET
+------------------------------------------------------------------------
+Path: C:\Users\Lenovo\chennai-flood-early-warning\data\processed\inundation_risk_ml_dataset.csv
+Raw rows: 353130
+Unique spatial cells: 70626
+Unique timestamps: 5
+Episodes:
+  Episode_1: 2021-11-08 23:00:00, 2021-11-10 11:00:00, 2021-11-10 18:00:00, 2021-11-12 00:00:00
+  Episode_2: 2021-11-28 06:00:00
+This table is the audited Stage 1/2 inundation-risk ML dataset.
+
+2. LABEL FILTERING
+------------------------------------------------------------------------
+Raw labels are {0, 1, 2}.
+  class 1: observed inundation at that timestamp
+  class 0: outside available inundation evidence
+  class 2: uncertain evidence (yearly aggregate inundation, not the timestamp footprint)
+PRIMARY BINARY EXPERIMENT:
+  KEEP class 0 and class 1
+  EXCLUDE class 2
+  NEVER convert class 2 into class 0
+Class 2 rows excluded: 3582
+Binary modeling rows: 349548
+
+3. FEATURES
+------------------------------------------------------------------------
+Exactly eight baseline features (rainfall + terrain):
+  - rain_1h
+  - rain_3h
+  - rain_6h
+  - rain_12h
+  - rain_24h
+  - elevation
+  - slope_degrees
+  - distance_to_drainage
+Rainfall is city-level (constant across cells at a timestamp).
+Terrain features vary by cell.
+
+4. FORBIDDEN FEATURES
+------------------------------------------------------------------------
+The following were not used as model inputs:
+  - future_6h_rain
+  - target
+  - label
+  - label_meaning
+  - timestamp
+  - episode_id
+  - cell_id
+  - centroid_x
+  - centroid_y
+  - centroid_lon
+  - centroid_lat
+AI #1 predicted rainfall was not used.
+future_6h_rain / rainfall target were not used.
+Coordinates were used only to build spatial blocks, never as model features.
+
+5. VALIDATION METHODOLOGY
+------------------------------------------------------------------------
+Outer validation: Leave-One-Episode-Out (both directions).
+  Experiment A: train Episode_1, test Episode_2
+  Experiment B: train Episode_2, test Episode_1
+The held-out episode is not used for feature selection, model selection,
+hyperparameter tuning, class weights, or threshold selection.
+Random row splits and ordinary random K-fold are not used.
+
+6. SPATIAL BLOCK METHODOLOGY
+------------------------------------------------------------------------
+Block CRS: EPSG:32644
+Centroids are stored as WGS84 lon/lat (EPSG:4326) and transformed to
+EPSG:32644 (UTM zone 44N, metres) before blocking. Degree units are not
+treated as kilometres.
+Block size: 5000.0 m x 5000.0 m
+block_ix = floor(easting / 5000), block_iy = floor(northing / 5000)
+Inner folds split unique spatial_block_id values (Group/block K-fold).
+Spatial buffer: 500.0 m
+For each inner fold, training cells whose projected centroid is within
+the buffer distance of any validation-fold cell are dropped from that
+fold's training set. Validation cells are never dropped by the buffer.
+Each cell therefore still receives exactly one out-of-fold score.
+
+7. MODELS
+------------------------------------------------------------------------
+majority_baseline:
+  Constant score = training-set positive prevalence.
+  Always predicts class 0 (majority). Threshold is not CSI-optimized
+  because a constant score makes CSI maximization degenerate
+  (all-positive can yield CSI = prevalence > 0).
+elevation_drainage_heuristic:
+  Transparent, equal-weight score. NOT a hydraulic model.
+  Training-only min-max normalization:
+    elev_score  = (elev_max - elevation) / (elev_max - elev_min)
+    drain_score = (drain_max - distance_to_drainage) / (drain_max - drain_min)
+    score = 0.5 * elev_score + 0.5 * drain_score
+    clipped to [0, 1] for probability-like metrics (Brier).
+  Low elevation and shorter mapped OSM drainage distance increase the score.
+  distance_to_drainage is distance to mapped OSM waterways, not hydraulic connectivity.
+  Normalization limits come from the outer training episode (inner folds use
+  inner-training limits for OOF scores). Slope is not used in this heuristic.
+logistic_regression:
+  StandardScaler fit on training features only.
+  L2 logistic regression, C=1.0, solver=lbfgs.
+  class_weight = balanced, computed from the training labels of that fit.
+xgboost:
+  Constrained search on inner spatial OOF PR-AUC:
+    max_depth in {3,4,5}, n_estimators in {100,300},
+    learning_rate=0.05, subsample=0.8, colsample_bytree=0.8, random_state=42
+  scale_pos_weight = n_neg/n_pos from the training rows of that fit only.
+
+8. THRESHOLD SELECTION
+------------------------------------------------------------------------
+Criterion: maximize CSI on out-of-fold scores from the outer training episode.
+Ties: higher recall, then lower threshold.
+The held-out episode is not used to choose the threshold.
+Majority baseline is the documented exception (always class 0).
+Selected thresholds:
+  majority_baseline | train Episode_1 -> test Episode_2: threshold=1.000000
+  elevation_drainage_heuristic | train Episode_1 -> test Episode_2: threshold=0.858758
+  logistic_regression | train Episode_1 -> test Episode_2: threshold=0.767558
+  xgboost | train Episode_1 -> test Episode_2: threshold=0.900000
+  majority_baseline | train Episode_2 -> test Episode_1: threshold=1.000000
+  elevation_drainage_heuristic | train Episode_2 -> test Episode_1: threshold=0.918873
+  logistic_regression | train Episode_2 -> test Episode_1: threshold=0.827481
+  xgboost | train Episode_2 -> test Episode_1: threshold=0.950000
+
+9. METRICS
+------------------------------------------------------------------------
+Primary: PR-AUC (ranking), CSI at the selected threshold, recall at that threshold.
+Secondary: precision, F1, ROC-AUC, confusion matrix (TP/FP/FN/TN), Brier score.
+Calibration (Brier) is exploratory because only two verified episodes exist.
+CSI = TP / (TP + FP + FN)
+
+10. RESULTS
+------------------------------------------------------------------------
+Class balance by outer experiment:
+  Train Episode_1 -> Test Episode_2: train_rows=279784 (pos=964, neg=278820, prevalence=0.003446); test_rows=69764 (pos=40, neg=69724, prevalence=0.000573)
+  Train Episode_2 -> Test Episode_1: train_rows=69764 (pos=40, neg=69724, prevalence=0.000573); test_rows=279784 (pos=964, neg=278820, prevalence=0.003446)
+
+                       model outer_train_episode outer_test_episode  threshold   PR_AUC      CSI   recall  precision       F1  ROC_AUC    Brier  TP    FP  FN     TN  train_rows  test_rows  train_positives  train_negatives  train_prevalence  test_positives  test_negatives  test_prevalence
+           majority_baseline           Episode_1          Episode_2   1.000000 0.000573 0.000000 0.000000   0.000000 0.000000 0.500000 0.000581   0     0  40  69724      279784      69764              964           278820          0.003446              40           69724         0.000573
+elevation_drainage_heuristic           Episode_1          Episode_2   0.858758 0.000662 0.000943 0.700000   0.000944 0.001885 0.587868 0.692648  28 29648  12  40076      279784      69764              964           278820          0.003446              40           69724         0.000573
+         logistic_regression           Episode_1          Episode_2   0.767558 0.000715 0.000000 0.000000   0.000000 0.000000 0.600796 0.130067   0   749  40  68975      279784      69764              964           278820          0.003446              40           69724         0.000573
+                     xgboost           Episode_1          Episode_2   0.900000 0.006531 0.000000 0.000000   0.000000 0.000000 0.903151 0.020812   0     0  40  69724      279784      69764              964           278820          0.003446              40           69724         0.000573
+           majority_baseline           Episode_2          Episode_1   1.000000 0.003446 0.000000 0.000000   0.000000 0.000000 0.500000 0.003442   0     0 964 278820       69764     279784               40            69724          0.000573             964          278820         0.003446
+elevation_drainage_heuristic           Episode_2          Episode_1   0.918873 0.003733 0.003673 0.026971   0.004235 0.007320 0.545439 0.690732  26  6114 938 272706       69764     279784               40            69724          0.000573             964          278820         0.003446
+         logistic_regression           Episode_2          Episode_1   0.827481 0.002603 0.001393 0.029046   0.001461 0.002781 0.385388 0.153717  28 19143 936 259677       69764     279784               40            69724          0.000573             964          278820         0.003446
+                     xgboost           Episode_2          Episode_1   0.950000 0.003780 0.004087 0.006224   0.011765 0.008141 0.503098 0.044999   6   504 958 278316       69764     279784               40            69724          0.000573             964          278820         0.003446
+
+Best model by mean PR-AUC across the two LOEO directions:
+  xgboost: mean PR-AUC=0.005156
+  elevation_drainage_heuristic: mean PR-AUC=0.002198
+  majority_baseline: mean PR-AUC=0.002009
+  logistic_regression: mean PR-AUC=0.001659
+Best model by mean CSI across the two LOEO directions:
+  elevation_drainage_heuristic: mean CSI=0.002308
+  xgboost: mean CSI=0.002044
+  logistic_regression: mean CSI=0.000696
+  majority_baseline: mean CSI=0.000000
+
+11. LIMITATIONS
+------------------------------------------------------------------------
+- Only two independently verified flood episodes are available.
+- Results are exploratory event-generalization evidence, not operational skill.
+- Labels are footprint presence/absence, not flood depth or arrival time.
+- Rainfall is not cell-specific; spatial discrimination comes from terrain.
+- distance_to_drainage is OSM waterway proximity, not hydraulic connectivity.
+- Elevation is terrain elevation, not a flow-accumulation substitute.
+- Class 2 exclusion reduces sample size and does not resolve label uncertainty.
+- Inner spatial CV still uses cells from the same meteorological event.
+- Episode_2 has only 40 class-1 cells; some inner spatial folds had 0
+  validation positives because those inundated cells are clustered.
+- CSI-selected thresholds can be high; a model may rank well (PR-AUC)
+  and still issue zero alerts on the held-out episode (CSI = 0).
+- No nationwide or universal flood-prediction claim is supported.
+
+12. SCIENTIFIC INTERPRETATION
+------------------------------------------------------------------------
+This stage asks whether observed rainfall plus terrain can rank inundation
+risk across two historical Chennai flood episodes without spatial/event leakage.
+It does not simulate hydraulics, predict depth, or forecast arrival time.
+If ML models do not beat the majority or elevation/drainage baselines on
+held-out episodes, that is a valid scientific result for this baseline.
+Do not interpret a high TN count as flood-prediction accuracy: negatives dominate.
+
+LEAKAGE CHECKS
+------------------------------------------------------------------------
+CHECK 1 PASS: class 2 excluded from binary training/evaluation; not recoded as 0.
+CHECK 2 PASS: no forbidden identifier/target/centroid/future columns in the feature list.
+CHECK 3 PASS: AI #1 predicted rainfall is not a model input.
+CHECK 4 PASS: no future rainfall feature is used.
+CHECK 5 PASS: hyperparameter search uses inner spatial CV on the outer training episode only.
+CHECK 6 PASS: operating threshold is selected from outer-training OOF scores only.
+CHECK 7 PASS: class weights / scale_pos_weight are computed from training rows only.
+CHECK 8 PASS: inner validation splits unique 5 km spatial blocks, not random cells/rows.
+CHECK 9 PASS: no duplicate cell-timestamp records.
+CHECK 10 PASS: the inundation label is the outcome, not a feature.
+
+STAGE 3 BASELINE COMPLETE.
+Interpretation status: exploratory event-generalization evidence.
