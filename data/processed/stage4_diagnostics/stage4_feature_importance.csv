@@ -1,0 +1,17 @@
+loeo_direction,feature,gain,weight_split_count,gain_rank_within_direction
+Episode_1_to_Episode_2,rain_3h,3204.7333984375,66.0,1
+Episode_1_to_Episode_2,rain_1h,2166.37451171875,307.0,2
+Episode_1_to_Episode_2,slope_degrees,1947.302001953125,610.0,3
+Episode_1_to_Episode_2,elevation,1792.658203125,700.0,4
+Episode_1_to_Episode_2,rain_12h,1267.0443115234375,90.0,5
+Episode_1_to_Episode_2,rain_24h,1235.0950927734375,35.0,6
+Episode_1_to_Episode_2,distance_to_drainage,850.420166015625,513.0,7
+Episode_1_to_Episode_2,rain_6h,771.8580322265625,8.0,8
+Episode_2_to_Episode_1,elevation,4364.70751953125,223.0,1
+Episode_2_to_Episode_1,distance_to_drainage,1686.5980224609375,159.0,2
+Episode_2_to_Episode_1,slope_degrees,1202.3052978515625,153.0,3
+Episode_2_to_Episode_1,rain_1h,0.0,0.0,4
+Episode_2_to_Episode_1,rain_3h,0.0,0.0,4
+Episode_2_to_Episode_1,rain_6h,0.0,0.0,4
+Episode_2_to_Episode_1,rain_12h,0.0,0.0,4
+Episode_2_to_Episode_1,rain_24h,0.0,0.0,4

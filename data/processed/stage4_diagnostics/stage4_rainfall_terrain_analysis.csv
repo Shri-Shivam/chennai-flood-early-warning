@@ -1,0 +1,17 @@
+loeo_direction,feature,pearson_corr_with_predicted_risk
+Episode_1_to_Episode_2,elevation,0.4375551282784253
+Episode_1_to_Episode_2,slope_degrees,-0.2196207809309314
+Episode_1_to_Episode_2,distance_to_drainage,-0.09861593980633486
+Episode_1_to_Episode_2,rain_1h,-2.9685044613969417e-15
+Episode_1_to_Episode_2,rain_3h,2.9685044613969417e-15
+Episode_1_to_Episode_2,rain_6h,
+Episode_1_to_Episode_2,rain_12h,2.9685044613969417e-15
+Episode_1_to_Episode_2,rain_24h,2.9685044613969417e-15
+Episode_2_to_Episode_1,elevation,0.22467634036993278
+Episode_2_to_Episode_1,slope_degrees,-0.08359207261298265
+Episode_2_to_Episode_1,distance_to_drainage,-0.15025172367404133
+Episode_2_to_Episode_1,rain_1h,1.5121197661010264e-17
+Episode_2_to_Episode_1,rain_3h,-7.284067508024038e-16
+Episode_2_to_Episode_1,rain_6h,-1.3923154527311633e-16
+Episode_2_to_Episode_1,rain_12h,2.0650027794579504e-16
+Episode_2_to_Episode_1,rain_24h,-1.9841980982312894e-16
