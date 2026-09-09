@@ -279,3 +279,16 @@ Weather
 → Exposure
 → Early Action
 → Dashboard
+---
+
+## Decision 007 — Scientific Principles for Stages 6–9
+
+1. **Project-Defined Rainfall Threshold**: The 20 mm / 6-hour rainfall threshold is a project-defined significant rainfall target; it must NEVER be cited as an IMD Heavy Rainfall classification.
+2. **Rainfall Forecasting Horizon**: AI #1 predicts a rainfall-risk signal over a 6-hour rainfall forecasting horizon; it does NOT predict exact flood arrival time.
+3. **Regional Trigger vs Spatial Field**: AI #1 probability serves as a regional weather trigger and must NOT be converted or broadcast as a simulated 250 m spatial rainfall field.
+4. **Hydrologic Representation**: Flow accumulation represents runoff concentration and topographical drainage convergence; it must not be casually described as merely "low-lying."
+5. **Spatial Resolution Bound**: The 250 m grid is a practical spatial analysis grid; unsupported claims of 100 m precision are prohibited.
+6. **Exposure Definition**: Exposure denotes population, roads, or facilities located within a predicted risk zone; it does NOT imply that these entities will definitely experience inundation or structural damage.
+7. **Infrastructure Status**: OpenStreetMap roads and facilities represent spatial exposure only and must NOT be treated as real-time operational status (e.g., closures or impassability).
+8. **Sample Size & Proof-of-Concept**: Only two independently verified flood episodes (Nov 8–12 and Nov 28, 2021) are currently available in the ground-truth satellite label set; all validation results are proof-of-concept evidence rather than broad generalizations.
+9. **Anti-Leakage Mandate**: Future observed rainfall ($T+1 \dots T+6$) must NEVER be used as a predictor or feature when evaluating forecast-driven risk.

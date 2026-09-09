@@ -1,0 +1,38 @@
+========================================================================
+SIH26071 STAGE 6 - LEAKAGE-SAFE WALK-FORWARD & RETROSPECTIVE FORECASTING
+========================================================================
+
+1. PRE-EVENT RETROSPECTIVE MODEL (NOVEMBER 2021)
+- Training period: 2016-01-02 00:00:00 to 2021-10-31 23:00:00
+- Out-of-sample test period: November 2021 (720 hours)
+- Target: future_6h_rain >= 20 mm (project-defined significant rainfall threshold)
+- Internal pre-event decision threshold: 0.90 (selected strictly from pre-event training data)
+- November 2021 full-month metrics:
+  Precision: 0.4000
+  Recall: 0.5641
+  F1: 0.4681
+  PR-AUC: 0.5596
+  Brier score: 0.0935
+  Confusion matrix: TN=648, FP=33, FN=17, TP=22
+  Persistence baseline F1: 0.4615
+
+2. RETROSPECTIVE PREDICTIONS FOR FLOOD TIMESTAMPS
+- 2021-11-08 23:00:00: prob = 0.2087, class = 0, actual = 2.8 mm
+- 2021-11-10 11:00:00: prob = 0.6583, class = 0, actual = 16.0 mm
+- 2021-11-10 18:00:00: prob = 0.9608, class = 1, actual = 47.4 mm (Storm Peak)
+- 2021-11-12 00:00:00: prob = 0.0117, class = 0, actual = 0.6 mm
+- 2021-11-28 06:00:00: prob = 0.1025, class = 0, actual = 6.7 mm
+
+3. ANNUAL WALK-FORWARD EXPANDING WINDOW (2021-2025)
+Walk-forward expanding window evaluated strictly out-of-sample:
+- 2021: F1 = 0.4029 (Baseline = 0.3673)
+- 2022: F1 = 0.2927 (Baseline = 0.3019)
+- 2023: F1 = 0.3934 (Baseline = 0.4250)
+- 2024: F1 = 0.3137 (Baseline = 0.1884)
+- 2025: F1 = 0.4199 (Baseline = 0.2473)
+
+4. NUMERICAL & CAUSAL VERIFICATION
+- Target 20 mm boundary handled with 1e-6 tolerance to resolve floating-point boundary issue.
+- Feature information time <= prediction timestamp verified across all rolling/lag windows.
+- No future observations leak into feature preprocessing, threshold selection, or model training.
+========================================================================

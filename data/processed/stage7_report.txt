@@ -1,0 +1,27 @@
+========================================================================
+SIH26071 STAGE 7 - AI #1 -> AI #2 INTEGRATION EXPERIMENTAL REPORT
+========================================================================
+
+1. OBJECTIVE & EXPERIMENTAL FRAMEWORK
+Evaluated whether leakage-safe AI #1 rainfall forecasts improve spatial inundation-risk
+prediction (AI #2) using Leave-One-Episode-Out (LOEO) spatial block cross-validation.
+
+Controlled Experiments:
+  - Exp A: Existing AI #2 Baseline (rain_1h..rain_24h, elevation, slope, drainage)
+  - Exp B: AI #1 Probability Added as Feature (ai1_forecast_prob)
+  - Exp C: AI #1 Continuous Amount Added as Feature (ai1_forecast_amount_mm)
+  - Exp D: AI #1 Warning / Scenario Trigger (risk modulation without retraining)
+
+2. METRIC COMPARISON SUMMARY
+experiment            train_episode test_episode   PR_AUC      CSI       F1  precision   recall    Brier
+Exp_A_Baseline            Episode_1    Episode_2 0.374455 0.179487 0.304348   0.214286 0.525000 0.007621
+Exp_B_AI1_Probability     Episode_1    Episode_2 0.384059 0.174312 0.296875   0.215909 0.475000 0.007145
+Exp_C_AI1_Amount          Episode_1    Episode_2 0.381811 0.179688 0.304636   0.207207 0.575000 0.007412
+Exp_D_AI1_Trigger         Episode_1    Episode_2 0.374455 0.224490 0.366666   0.550000 0.275000 0.007210
+Exp_A_Baseline            Episode_2    Episode_1 0.421541 0.121730 0.217040   0.801325 0.125519 0.021045
+Exp_B_AI1_Probability     Episode_2    Episode_1 0.430331 0.136863 0.240773   0.787356 0.142116 0.019812
+Exp_C_AI1_Amount          Episode_2    Episode_1 0.428788 0.130040 0.230152   0.821656 0.133817 0.020140
+Exp_D_AI1_Trigger         Episode_2    Episode_1 0.446315 0.191312 0.321179   0.636923 0.214730 0.018912
+
+3. STATUS: STAGE 7 COMPLETE
+========================================================================
