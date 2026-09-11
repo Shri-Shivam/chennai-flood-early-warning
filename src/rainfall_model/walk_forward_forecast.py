@@ -197,7 +197,7 @@ def retrospective_2021(d):
     test = d[(d["timestamp"] >= test_start) & (d["timestamp"] < test_end)].copy()
 
     fit, validation = chronological_validation_split(train)
-    model = classifier(train_fit)
+    model = classifier(fit)
     model.fit(fit[FEATURES], fit[TARGET].astype(int))
 
     p_val = model.predict_proba(validation[FEATURES])[:, 1]
@@ -341,5 +341,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
 
 
