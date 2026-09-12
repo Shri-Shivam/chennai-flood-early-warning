@@ -1,0 +1,7 @@
+mode,direction,TP,FP,FN,TN,FAR,Recall,Precision,F1,CSI
+Mode_1_Forecast_Driven,Episode_1_to_Episode_2,19,69,21,69655,0.784091,0.475000,0.215909,0.296875,0.174312
+Mode_1_Scenario_Trigger,Episode_1_to_Episode_2,11,9,29,69715,0.450000,0.275000,0.550000,0.366667,0.224490
+Mode_2_Observed_Reference,Episode_1_to_Episode_2,21,77,19,69647,0.785714,0.525000,0.214286,0.304348,0.179487
+Mode_1_Forecast_Driven,Episode_2_to_Episode_1,137,37,827,278783,0.212644,0.142116,0.787356,0.240773,0.136863
+Mode_1_Scenario_Trigger,Episode_2_to_Episode_1,207,118,757,278702,0.363077,0.214730,0.636923,0.321179,0.191312
+Mode_2_Observed_Reference,Episode_2_to_Episode_1,121,30,843,278790,0.198675,0.125519,0.801325,0.217040,0.121730
