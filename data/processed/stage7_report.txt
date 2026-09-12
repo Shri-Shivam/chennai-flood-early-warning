@@ -1,27 +1,38 @@
-========================================================================
-SIH26071 STAGE 7 - AI #1 -> AI #2 INTEGRATION EXPERIMENTAL REPORT
-========================================================================
+SIH26071 - Stage 7: Controlled AI#1 -> AI#2 Integration (reconstructed)
 
-1. OBJECTIVE & EXPERIMENTAL FRAMEWORK
-Evaluated whether leakage-safe AI #1 rainfall forecasts improve spatial inundation-risk
-prediction (AI #2) using Leave-One-Episode-Out (LOEO) spatial block cross-validation.
+Specification: NEW master-prompt Stage 7 spec (explicitly supersedes the
+original Stage 7 spec's experiment definitions and fixed-0.50 threshold policy).
 
-Controlled Experiments:
-  - Exp A: Existing AI #2 Baseline (rain_1h..rain_24h, elevation, slope, drainage)
-  - Exp B: AI #1 Probability Added as Feature (ai1_forecast_prob)
-  - Exp C: AI #1 Continuous Amount Added as Feature (ai1_forecast_amount_mm)
-  - Exp D: AI #1 Warning / Scenario Trigger (risk modulation without retraining)
+Experiment definitions:
+- Exp_A_Baseline: rain_1h, rain_3h, rain_6h, rain_12h, rain_24h, elevation, slope_degrees, distance_to_drainage
+- Exp_B_Baseline_plus_AI1: Exp A features + AI#1 forecast probability
+- Exp_C_AI1_Only: AI#1 forecast probability only
+- Exp_D_NonAI_Rain24h_Baseline: deterministic score = raw rain_24h (mm); no model fitting, not AI -- isolates whether Exp B's value (if any) is more than 'more rainfall information'
 
-2. METRIC COMPARISON SUMMARY
-experiment            train_episode test_episode   PR_AUC      CSI       F1  precision   recall    Brier
-Exp_A_Baseline            Episode_1    Episode_2 0.374455 0.179487 0.304348   0.214286 0.525000 0.007621
-Exp_B_AI1_Probability     Episode_1    Episode_2 0.384059 0.174312 0.296875   0.215909 0.475000 0.007145
-Exp_C_AI1_Amount          Episode_1    Episode_2 0.381811 0.179688 0.304636   0.207207 0.575000 0.007412
-Exp_D_AI1_Trigger         Episode_1    Episode_2 0.374455 0.224490 0.366666   0.550000 0.275000 0.007210
-Exp_A_Baseline            Episode_2    Episode_1 0.421541 0.121730 0.217040   0.801325 0.125519 0.021045
-Exp_B_AI1_Probability     Episode_2    Episode_1 0.430331 0.136863 0.240773   0.787356 0.142116 0.019812
-Exp_C_AI1_Amount          Episode_2    Episode_1 0.428788 0.130040 0.230152   0.821656 0.133817 0.020140
-Exp_D_AI1_Trigger         Episode_2    Episode_1 0.446315 0.191312 0.321179   0.636923 0.214730 0.018912
+Validation design:
+- Outer: Leave-One-Episode-Out, both directions (Episode_1<->Episode_2).
+- Inner: up to 5-fold spatial-block CV within the training episode only, 5km x 5km blocks in EPSG:32644, 500m nearest-cell buffer excluding candidate training cells near the held-out fold's cells.
+- Threshold selected by maximizing CSI on out-of-fold predictions only (tie-break: higher F1, then smaller threshold), frozen, then applied exactly once to the fully held-out test episode.
+- The held-out test episode never participates in block assignment, model fitting, or threshold selection.
 
-3. STATUS: STAGE 7 COMPLETE
-========================================================================
+Leakage controls:
+- Class 2 (uncertain) excluded from this binary experiment; never relabeled.
+- AI#1 probability/amount merged on exact timestamp only; a missing required timestamp raises a hard error instead of silently dropping rows.
+- future_6h_rain / target / label are never used as AI#2 predictors.
+- AI#1 predictions come from the Stage 6 model trained strictly through 2021-10-31 23:00, causally valid at each Stage 7 timestamp.
+
+Results (LOEO, both directions, all experiments; independently computed, not hard-coded):
+
+                  experiment train_episode test_episode  threshold   PR_AUC      CSI   recall  precision       F1  ROC_AUC    Brier  TP     FP  FN     TN  n_test  n_test_positive  n_test_negative  n_inner_oof  n_inner_folds_used
+              Exp_A_Baseline     Episode_1    Episode_2   0.915345 0.004210 0.000000 0.000000   0.000000 0.000000 0.859239 0.009042   0      0  40  69724   69764               40            69724       279784                   5
+     Exp_B_Baseline_plus_AI1     Episode_1    Episode_2   0.929577 0.003476 0.000000 0.000000   0.000000 0.000000 0.853437 0.012661   0      1  40  69723   69764               40            69724       279784                   5
+              Exp_C_AI1_Only     Episode_1    Episode_2   0.625152 0.000573 0.000000 0.000000   0.000000 0.000000 0.500000 0.029315   0      0  40  69724   69764               40            69724       279784                   5
+Exp_D_NonAI_Rain24h_Baseline     Episode_1    Episode_2  20.600000 0.000573 0.000573 1.000000   0.000573 0.001146 0.500000      NaN  40  69724   0      0   69764               40            69724       279784                   5
+              Exp_A_Baseline     Episode_2    Episode_1   0.194261 0.008515 0.007828 0.016598   0.014599 0.015534 0.460706 0.004676  16   1080 948 277740  279784              964           278820        69764                   5
+     Exp_B_Baseline_plus_AI1     Episode_2    Episode_1   0.232029 0.009219 0.007187 0.014523   0.014028 0.014271 0.466738 0.004663  14    984 950 277836  279784              964           278820        69764                   5
+              Exp_C_AI1_Only     Episode_2    Episode_1   0.503734 0.003446 0.000000 0.000000   0.000000 0.000000 0.500000 0.243507   0      0 964 278820  279784              964           278820        69764                   5
+Exp_D_NonAI_Rain24h_Baseline     Episode_2    Episode_1  27.200000 0.003896 0.004131 0.601660   0.004142 0.008228 0.539365      NaN 580 139435 384 139385  279784              964           278820        69764                   5
+
+Historical reference metrics live separately in data/reference/ and were not used to tune this implementation in any way.
+
+Note on Exp_D_NonAI_Rain24h_Baseline's Brier score: reported as NaN. Brier score is only defined for a genuine probability in [0,1]; Exp D's score is raw rain_24h in millimetres, not a probability, so no meaningful Brier value exists for it and none was fabricated via an arbitrary normalization.
