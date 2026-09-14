@@ -1,38 +1,36 @@
-========================================================================
-SIH26071 STAGE 6 - LEAKAGE-SAFE WALK-FORWARD & RETROSPECTIVE FORECASTING
-========================================================================
+SIH26071 - Stage 6: AI #1 Rainfall Forecasting
 
-1. PRE-EVENT RETROSPECTIVE MODEL (NOVEMBER 2021)
-- Training period: 2016-01-02 00:00:00 to 2021-10-31 23:00:00
-- Out-of-sample test period: November 2021 (720 hours)
-- Target: future_6h_rain >= 20 mm (project-defined significant rainfall threshold)
-- Internal pre-event decision threshold: 0.90 (selected strictly from pre-event training data)
-- November 2021 full-month metrics:
-  Precision: 0.4000
-  Recall: 0.5641
-  F1: 0.4681
-  PR-AUC: 0.5596
-  Brier score: 0.0935
-  Confusion matrix: TN=648, FP=33, FN=17, TP=22
-  Persistence baseline F1: 0.4615
+Leakage controls:
+- Predictor set contains only 20 causal features.
+- future_6h_rain is never used as a predictor.
+- November 2021 retrospective training cutoff: 2021-10-31 23:00.
+- Walk-forward models train only on years before each test year.
+- Test-year labels are not used for threshold selection.
 
-2. RETROSPECTIVE PREDICTIONS FOR FLOOD TIMESTAMPS
-- 2021-11-08 23:00:00: prob = 0.2087, class = 0, actual = 2.8 mm
-- 2021-11-10 11:00:00: prob = 0.6583, class = 0, actual = 16.0 mm
-- 2021-11-10 18:00:00: prob = 0.9608, class = 1, actual = 47.4 mm (Storm Peak)
-- 2021-11-12 00:00:00: prob = 0.0117, class = 0, actual = 0.6 mm
-- 2021-11-28 06:00:00: prob = 0.1025, class = 0, actual = 6.7 mm
+November 2021 retrospective results:
+- Selected threshold: 0.95
+- Precision: 0.6500
+- Recall: 0.3333
+- F1: 0.4407
+- PR-AUC: 0.5118
+- Brier: 0.0481
+- CSI: 0.2826
+- Confusion matrix: TN=674, FP=7, FN=26, TP=13
 
-3. ANNUAL WALK-FORWARD EXPANDING WINDOW (2021-2025)
-Walk-forward expanding window evaluated strictly out-of-sample:
-- 2021: F1 = 0.4029 (Baseline = 0.3673)
-- 2022: F1 = 0.2927 (Baseline = 0.3019)
-- 2023: F1 = 0.3934 (Baseline = 0.4250)
-- 2024: F1 = 0.3137 (Baseline = 0.1884)
-- 2025: F1 = 0.4199 (Baseline = 0.2473)
+Secondary rainfall-amount regression:
+- MAE: 4.1008 mm
+- RMSE: 7.5379 mm
+- R2: 0.5984
 
-4. NUMERICAL & CAUSAL VERIFICATION
-- Target 20 mm boundary handled with 1e-6 tolerance to resolve floating-point boundary issue.
-- Feature information time <= prediction timestamp verified across all rolling/lag windows.
-- No future observations leak into feature preprocessing, threshold selection, or model training.
-========================================================================
+Walk-forward results:
+- 2021: threshold=0.55, precision=0.4390, recall=0.3673, F1=0.4000, PR-AUC=0.3695, CSI=0.2500
+- 2022: threshold=0.88, precision=0.1429, recall=0.0385, F1=0.0606, PR-AUC=0.1679, CSI=0.0312
+- 2023: threshold=0.50, precision=0.5357, recall=0.3750, F1=0.4412, PR-AUC=0.4080, CSI=0.2830
+- 2024: threshold=0.59, precision=0.4186, recall=0.2687, F1=0.3273, PR-AUC=0.2681, CSI=0.1957
+- 2025: threshold=0.84, precision=0.4737, recall=0.1935, F1=0.2748, PR-AUC=0.2396, CSI=0.1593
+
+Interpretation:
+- Classification is the primary operational warning output.
+- Regression amount is exploratory and should not be interpreted as an exact rainfall forecast.
+- This Stage 6 output represents a 6-hour rainfall forecasting horizon, not an exact flood arrival-time prediction.
+- Historical reference metrics should be compared separately; they must not be hard-coded into this implementation.
