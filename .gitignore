@@ -218,7 +218,8 @@ __marimo__/
 .streamlit/secrets.toml
 .env
 # Local cache
-cache/# ==========================================
+cache/
+# ==========================================
 # SIH PROJECT DATA
 # ==========================================
 
@@ -239,3 +240,4 @@ stage1_inspection_report.txt
 
 # Local cache
 cache/
+data/processed/stage8_end_to_end_predictions.csv

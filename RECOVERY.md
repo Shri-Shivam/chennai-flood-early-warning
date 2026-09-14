@@ -102,3 +102,51 @@
 ## License & Preservation
 
 This recovery documentation is preserved in accordance with scientific transparency, reproducibility standards, and audit trail preservation. Quarantined artifacts may be referenced in post-mortem analysis but must never be presented as validated outputs without genuine reconstruction and execution.
+
+## Correction and Stage 8 Genuine Reconstruction — 2026-09-14
+
+**Quarantine gap found and fixed**: A forensic audit found that the 2026-09-12
+Stage 8 quarantine had *copied* 7 unverified artifacts into
+`archive/unverified_recovery_2026-09-12/stage8/` but had not removed the
+original duplicates from their live paths. The following 7 files existed
+simultaneously at both locations, byte-identical:
+
+- `src/validation/run_end_to_end_backtest.py`
+- `src/validation/evaluate_end_to_end_backtest.py`
+- `tests/test_end_to_end_temporal_integrity.py`
+- `data/processed/stage8_report.txt`
+- `data/processed/stage8_event_summary.csv`
+- `data/processed/stage8_end_to_end_metrics.csv`
+- `data/processed/stage8_confusion_matrices.csv`
+
+This contradicted this document's own earlier claim that these 7 files had
+been "moved to local archive." They have now been removed from their live
+paths via `git rm` (the archived copies already preserve them for forensic
+record — nothing was deleted, only de-duplicated).
+
+**Stage 8 genuinely reconstructed**: New, real implementations now exist at
+the same canonical paths, built from scratch and independently verified:
+
+- `src/validation/run_end_to_end_backtest.py` — reuses Stage 7's already
+  trained, already-frozen LOEO models and their already OOF-selected
+  thresholds (no new fitting or threshold selection occurs). For each of
+  the 5 known flood-event timestamps, scores every cell using the frozen
+  model trained on the *other* episode.
+- `src/validation/evaluate_end_to_end_backtest.py` — computes event-level
+  (per-timestamp) and pooled (all 5 events) metrics directly from the
+  generated predictions.
+- `tests/test_end_to_end_temporal_integrity.py` — 14 tests, all passing,
+  covering leakage, timestamp alignment, episode separation, duplicate
+  keys, NaN/Inf checks, frozen-threshold verification, and independent
+  metric recomputation from raw predictions.
+
+Real, computed pooled result (not hard-coded, not tuned to match anything):
+Exp_A_Baseline CSI=0.0077 vs Exp_B_Baseline_plus_AI1 CSI=0.0070 — AI#1
+integration did **not** show a pooled improvement in this backtest,
+consistent with Stage 7's own finding. See `data/processed/stage8_report.txt`
+for full methodology, event-level breakdown, and limitations.
+
+`data/processed/stage8_end_to_end_predictions.csv` (~94MB, 1,048,644 rows)
+is generated locally and added to `.gitignore` — too large for this
+repository, kept local per this document's own "Execution Recommendation"
+guidance above.
