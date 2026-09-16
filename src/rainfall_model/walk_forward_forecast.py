@@ -55,8 +55,14 @@ XGB_PARAMS = dict(
     colsample_bytree=0.8,
     objective="binary:logistic",
     eval_metric="aucpr",
-        random_state=42,
-    n_jobs=-1,
+    random_state=42,
+    # Pinned to 1 (not -1) for cross-machine reproducibility: XGBoost's
+    # hist tree method builds gradient histograms in parallel, and
+    # floating-point summation is not associative, so results can differ
+    # slightly across machines with different core counts even with a
+    # fixed random_state (documented in XGBoost's own FAQ). See
+    # docs/reproducibility.md.
+    n_jobs=1,
     tree_method="hist",
 )
 
@@ -68,7 +74,7 @@ REG_PARAMS = dict(
     colsample_bytree=0.8,
     objective="reg:squarederror",
     random_state=42,
-    n_jobs=-1,
+    n_jobs=1,
     tree_method="hist",
 )
 

@@ -88,7 +88,10 @@ XGB_PARAMS = dict(
     objective="binary:logistic",
     eval_metric="aucpr",
     random_state=42,
-    n_jobs=-1,
+    # Pinned to 1 (not -1) for cross-machine reproducibility -- see
+    # docs/reproducibility.md and the matching comment in
+    # src/rainfall_model/walk_forward_forecast.py.
+    n_jobs=1,
     tree_method="hist",
 )
 

@@ -44,22 +44,22 @@ retrospective integration backtest of already-fitted models, not an
 independent real-time operational simulation.
 
 6. POOLED RESULTS (all 5 known events together)
-- Exp_A_Baseline:               CSI=0.0077, PR-AUC=0.0076, Recall=0.0159, Precision=0.0146, TP=16, FP=1080
-- Exp_B_Baseline_plus_AI1:      CSI=0.0070, PR-AUC=0.0083, Recall=0.0139, Precision=0.0140, TP=14, FP=985
+- Exp_A_Baseline:               CSI=0.0068, PR-AUC=0.0081, Recall=0.0189, Precision=0.0106, TP=19, FP=1779
+- Exp_B_Baseline_plus_AI1:      CSI=0.0074, PR-AUC=0.0079, Recall=0.0139, Precision=0.0156, TP=14, FP=884
 - Exp_C_NonAI_Rain24h:          CSI=0.0030, PR-AUC=0.0035, Recall=0.6175, Precision=0.0030, TP=620, FP=209159
 
 7. EVENT-LEVEL BREAKDOWN (per individual flood timestamp)
              experiment           timestamp      CSI   recall  precision  TP    FP  FN    TN
-         Exp_A_Baseline 2021-11-08 23:00:00 0.003135 0.020408   0.003690   1   270  48 69445
-         Exp_A_Baseline 2021-11-10 11:00:00 0.011570 0.020896   0.025271   7   270 328 69400
-         Exp_A_Baseline 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   270 477 69438
-         Exp_A_Baseline 2021-11-12 00:00:00 0.021448 0.077670   0.028777   8   270  95 69457
-         Exp_A_Baseline 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0     0  40 69724
-Exp_B_Baseline_plus_AI1 2021-11-08 23:00:00 0.003390 0.020408   0.004049   1   246  48 69469
-Exp_B_Baseline_plus_AI1 2021-11-10 11:00:00 0.008606 0.014925   0.019920   5   246 330 69424
-Exp_B_Baseline_plus_AI1 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   246 477 69462
-Exp_B_Baseline_plus_AI1 2021-11-12 00:00:00 0.022923 0.077670   0.031496   8   246  95 69481
-Exp_B_Baseline_plus_AI1 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0     1  40 69723
+         Exp_A_Baseline 2021-11-08 23:00:00 0.002053 0.020408   0.002278   1   438  48 69277
+         Exp_A_Baseline 2021-11-10 11:00:00 0.012953 0.029851   0.022371  10   437 325 69233
+         Exp_A_Baseline 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   438 477 69270
+         Exp_A_Baseline 2021-11-12 00:00:00 0.014787 0.077670   0.017937   8   438  95 69289
+         Exp_A_Baseline 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0    28  40 69696
+Exp_B_Baseline_plus_AI1 2021-11-08 23:00:00 0.003704 0.020408   0.004505   1   221  48 69494
+Exp_B_Baseline_plus_AI1 2021-11-10 11:00:00 0.008993 0.014925   0.022124   5   221 330 69449
+Exp_B_Baseline_plus_AI1 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   221 477 69487
+Exp_B_Baseline_plus_AI1 2021-11-12 00:00:00 0.024691 0.077670   0.034934   8   221  95 69506
+Exp_B_Baseline_plus_AI1 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0     0  40 69724
     Exp_C_NonAI_Rain24h 2021-11-08 23:00:00 0.000000 0.000000   0.000000   0     0  49 69715
     Exp_C_NonAI_Rain24h 2021-11-10 11:00:00 0.000000 0.000000   0.000000   0     0 335 69670
     Exp_C_NonAI_Rain24h 2021-11-10 18:00:00 0.006796 1.000000   0.006796 477 69708   0     0
@@ -67,7 +67,7 @@ Exp_B_Baseline_plus_AI1 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0    
     Exp_C_NonAI_Rain24h 2021-11-28 06:00:00 0.000573 1.000000   0.000573  40 69724   0     0
 
 8. BASELINE COMPARISON
-Exp B's pooled CSI (0.0070) is LOWER than Exp A's (0.0077).
+Exp B's pooled CSI (0.0074) exceeds Exp A's (0.0068).
 This pooled comparison combines two structurally different events (4 timestamps from Episode_1, 1 from Episode_2) and should be read alongside the event-level breakdown above, not in isolation -- a pooled number can hide event-to-event inconsistency.
 
 9. SCIENTIFIC CONCLUSION

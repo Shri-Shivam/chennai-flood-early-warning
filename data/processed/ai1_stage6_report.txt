@@ -9,25 +9,25 @@ Leakage controls:
 
 November 2021 retrospective results:
 - Selected threshold: 0.95
-- Precision: 0.6500
+- Precision: 0.5909
 - Recall: 0.3333
-- F1: 0.4407
-- PR-AUC: 0.5118
-- Brier: 0.0481
-- CSI: 0.2826
-- Confusion matrix: TN=674, FP=7, FN=26, TP=13
+- F1: 0.4262
+- PR-AUC: 0.5195
+- Brier: 0.0502
+- CSI: 0.2708
+- Confusion matrix: TN=672, FP=9, FN=26, TP=13
 
 Secondary rainfall-amount regression:
-- MAE: 4.1008 mm
-- RMSE: 7.5379 mm
-- R2: 0.5984
+- MAE: 4.2312 mm
+- RMSE: 8.0546 mm
+- R2: 0.5415
 
 Walk-forward results:
-- 2021: threshold=0.55, precision=0.4390, recall=0.3673, F1=0.4000, PR-AUC=0.3695, CSI=0.2500
-- 2022: threshold=0.88, precision=0.1429, recall=0.0385, F1=0.0606, PR-AUC=0.1679, CSI=0.0312
-- 2023: threshold=0.50, precision=0.5357, recall=0.3750, F1=0.4412, PR-AUC=0.4080, CSI=0.2830
-- 2024: threshold=0.59, precision=0.4186, recall=0.2687, F1=0.3273, PR-AUC=0.2681, CSI=0.1957
-- 2025: threshold=0.84, precision=0.4737, recall=0.1935, F1=0.2748, PR-AUC=0.2396, CSI=0.1593
+- 2021: threshold=0.52, precision=0.4545, recall=0.4082, F1=0.4301, PR-AUC=0.3754, CSI=0.2740
+- 2022: threshold=0.91, precision=0.1538, recall=0.0385, F1=0.0615, PR-AUC=0.1879, CSI=0.0317
+- 2023: threshold=0.72, precision=0.6667, recall=0.3000, F1=0.4138, PR-AUC=0.3912, CSI=0.2609
+- 2024: threshold=0.86, precision=0.6667, recall=0.2090, F1=0.3182, PR-AUC=0.3138, CSI=0.1892
+- 2025: threshold=0.95, precision=0.5200, recall=0.1398, F1=0.2203, PR-AUC=0.2476, CSI=0.1238
 
 Interpretation:
 - Classification is the primary operational warning output.

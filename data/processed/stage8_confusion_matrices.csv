@@ -1,17 +1,17 @@
 experiment,scope,TP,FP,FN,TN
-Exp_A_Baseline,pooled_all_5_events,16,1080,988,347464
-Exp_B_Baseline_plus_AI1,pooled_all_5_events,14,985,990,347559
+Exp_A_Baseline,pooled_all_5_events,19,1779,985,346765
+Exp_B_Baseline_plus_AI1,pooled_all_5_events,14,884,990,347660
 Exp_C_NonAI_Rain24h,pooled_all_5_events,620,209159,384,139385
-Exp_A_Baseline,2021-11-08 23:00:00,1,270,48,69445
-Exp_A_Baseline,2021-11-10 11:00:00,7,270,328,69400
-Exp_A_Baseline,2021-11-10 18:00:00,0,270,477,69438
-Exp_A_Baseline,2021-11-12 00:00:00,8,270,95,69457
-Exp_A_Baseline,2021-11-28 06:00:00,0,0,40,69724
-Exp_B_Baseline_plus_AI1,2021-11-08 23:00:00,1,246,48,69469
-Exp_B_Baseline_plus_AI1,2021-11-10 11:00:00,5,246,330,69424
-Exp_B_Baseline_plus_AI1,2021-11-10 18:00:00,0,246,477,69462
-Exp_B_Baseline_plus_AI1,2021-11-12 00:00:00,8,246,95,69481
-Exp_B_Baseline_plus_AI1,2021-11-28 06:00:00,0,1,40,69723
+Exp_A_Baseline,2021-11-08 23:00:00,1,438,48,69277
+Exp_A_Baseline,2021-11-10 11:00:00,10,437,325,69233
+Exp_A_Baseline,2021-11-10 18:00:00,0,438,477,69270
+Exp_A_Baseline,2021-11-12 00:00:00,8,438,95,69289
+Exp_A_Baseline,2021-11-28 06:00:00,0,28,40,69696
+Exp_B_Baseline_plus_AI1,2021-11-08 23:00:00,1,221,48,69494
+Exp_B_Baseline_plus_AI1,2021-11-10 11:00:00,5,221,330,69449
+Exp_B_Baseline_plus_AI1,2021-11-10 18:00:00,0,221,477,69487
+Exp_B_Baseline_plus_AI1,2021-11-12 00:00:00,8,221,95,69506
+Exp_B_Baseline_plus_AI1,2021-11-28 06:00:00,0,0,40,69724
 Exp_C_NonAI_Rain24h,2021-11-08 23:00:00,0,0,49,69715
 Exp_C_NonAI_Rain24h,2021-11-10 11:00:00,0,0,335,69670
 Exp_C_NonAI_Rain24h,2021-11-10 18:00:00,477,69708,0,0

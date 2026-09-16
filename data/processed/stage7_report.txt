@@ -24,13 +24,13 @@ Leakage controls:
 Results (LOEO, both directions, all experiments; independently computed, not hard-coded):
 
                   experiment train_episode test_episode  threshold   PR_AUC      CSI   recall  precision       F1  ROC_AUC    Brier  TP     FP  FN     TN  n_test  n_test_positive  n_test_negative  n_inner_oof  n_inner_folds_used
-              Exp_A_Baseline     Episode_1    Episode_2   0.915345 0.004210 0.000000 0.000000   0.000000 0.000000 0.859239 0.009042   0      0  40  69724   69764               40            69724       279784                   5
-     Exp_B_Baseline_plus_AI1     Episode_1    Episode_2   0.929577 0.003476 0.000000 0.000000   0.000000 0.000000 0.853437 0.012661   0      1  40  69723   69764               40            69724       279784                   5
-              Exp_C_AI1_Only     Episode_1    Episode_2   0.625152 0.000573 0.000000 0.000000   0.000000 0.000000 0.500000 0.029315   0      0  40  69724   69764               40            69724       279784                   5
+              Exp_A_Baseline     Episode_1    Episode_2   0.861343 0.003462 0.000000 0.000000   0.000000 0.000000 0.844963 0.012027   0     28  40  69696   69764               40            69724       279784                   5
+     Exp_B_Baseline_plus_AI1     Episode_1    Episode_2   0.927067 0.006867 0.000000 0.000000   0.000000 0.000000 0.871709 0.010702   0      0  40  69724   69764               40            69724       279784                   5
+              Exp_C_AI1_Only     Episode_1    Episode_2   0.625285 0.000573 0.000000 0.000000   0.000000 0.000000 0.500000 0.028888   0      0  40  69724   69764               40            69724       279784                   5
 Exp_D_NonAI_Rain24h_Baseline     Episode_1    Episode_2  20.600000 0.000573 0.000573 1.000000   0.000573 0.001146 0.500000      NaN  40  69724   0      0   69764               40            69724       279784                   5
-              Exp_A_Baseline     Episode_2    Episode_1   0.194261 0.008515 0.007828 0.016598   0.014599 0.015534 0.460706 0.004676  16   1080 948 277740  279784              964           278820        69764                   5
-     Exp_B_Baseline_plus_AI1     Episode_2    Episode_1   0.232029 0.009219 0.007187 0.014523   0.014028 0.014271 0.466738 0.004663  14    984 950 277836  279784              964           278820        69764                   5
-              Exp_C_AI1_Only     Episode_2    Episode_1   0.503734 0.003446 0.000000 0.000000   0.000000 0.000000 0.500000 0.243507   0      0 964 278820  279784              964           278820        69764                   5
+              Exp_A_Baseline     Episode_2    Episode_1   0.100065 0.008995 0.006998 0.019710   0.010734 0.013899 0.435012 0.004508  19   1751 945 277069  279784              964           278820        69764                   5
+     Exp_B_Baseline_plus_AI1     Episode_2    Episode_1   0.235908 0.008813 0.007576 0.014523   0.015590 0.015038 0.476881 0.004546  14    884 950 277936  279784              964           278820        69764                   5
+              Exp_C_AI1_Only     Episode_2    Episode_1   0.508098 0.003446 0.000000 0.000000   0.000000 0.000000 0.500000 0.252946   0      0 964 278820  279784              964           278820        69764                   5
 Exp_D_NonAI_Rain24h_Baseline     Episode_2    Episode_1  27.200000 0.003896 0.004131 0.601660   0.004142 0.008228 0.539365      NaN 580 139435 384 139385  279784              964           278820        69764                   5
 
 Historical reference metrics live separately in data/reference/ and were not used to tune this implementation in any way.
