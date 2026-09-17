@@ -244,3 +244,4 @@ data/processed/stage8_end_to_end_predictions.csv
 
 # Local Earthdata authentication
 .dodsrc
+data/processed/stage7_ai1_ai2_predictions.csv
