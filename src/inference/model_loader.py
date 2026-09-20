@@ -18,6 +18,8 @@ from typing import Iterable
 import pandas as pd
 from xgboost import XGBClassifier, XGBRegressor
 
+from src.config import settings
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -107,19 +109,20 @@ def clear_cache() -> None:
 # hard-code a model path.
 REGISTRY = {
     "ai1_rainfall": {
-        "path": "models/xgboost_rainfall_model.json",
+        "path": settings.ai1_rainfall_model_path,
         "kind": "classifier",
         "description": "AI#1: current production rainfall classifier "
                         "(chronological split train 2016-2022 / val 2023-2024 / test 2025). "
                         "Predicts P(future_6h_rain >= 20mm).",
     },
     "ai2_baseline_production": {
-        "path": "models/production/ai2_baseline.json",
+        "path": settings.ai2_production_model_path,
         "kind": "classifier",
         "description": "AI#2: production inundation-risk baseline (Exp_A_Baseline "
                         "architecture, refit on all available class-0/1 ground truth). "
-                        "See models/production/ai2_baseline_metadata.json for known "
-                        "limitations -- no independently-validated operating threshold exists yet.",
+                        "See models/production/ai2_baseline_metadata.json for details -- "
+                        "its operating threshold was selected via spatial-block OOF CV, "
+                        "not validated against an independent flood episode.",
     },
 }
 
