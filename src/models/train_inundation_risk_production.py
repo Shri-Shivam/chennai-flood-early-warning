@@ -65,15 +65,21 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     model.save_model(str(OUT_MODEL))
 
-    # A fixed, documented operating threshold is required for a binary
-    # decision. Stage 7/8 established 0.86 and 0.10 as OOF-selected
-    # thresholds for this exact architecture on the two LOEO folds --
-    # since this production model is fit on the union of both episodes,
-    # neither fold's threshold alone is authoritative. Pending a proper
-    # production threshold-selection exercise (out of scope for this
-    # pass), the PR-AUC-ranking score itself is exposed rather than a
-    # single hard threshold, so callers can apply their own operating
-    # point rather than inherit an unvalidated one.
+    # A fixed operating threshold is selected separately by
+    # src/models/select_production_threshold.py (run it after this
+    # script). If that script has already run, its
+    # production_operating_threshold field is preserved here rather than
+    # being silently wiped out by retraining this base model again.
+    import json
+    existing_threshold_field = None
+    if OUT_METADATA.exists():
+        try:
+            existing_threshold_field = json.loads(OUT_METADATA.read_text()).get(
+                "production_operating_threshold"
+            )
+        except (json.JSONDecodeError, OSError):
+            existing_threshold_field = None
+
     metadata = {
         "model": "ai2_baseline (production)",
         "architecture": "Exp_A_Baseline (Stage 7), no AI#1 probability",
@@ -87,12 +93,16 @@ def main():
         "known_limitation": "This exact architecture was validated via LOEO in Stage 7/8 "
                              "(see data/processed/stage7_model_comparison.csv), not "
                              "independently re-validated after refitting on the full "
-                             "combined dataset. No production operating threshold has "
-                             "been separately selected -- see comment in "
-                             "src/models/train_inundation_risk_production.py.",
+                             "combined dataset. See production_operating_threshold below "
+                             "(and its own limitation note) for the operating threshold, "
+                             "if src/models/select_production_threshold.py has been run.",
         "xgb_params": {k: v for k, v in params.items() if k != "n_jobs"},
     }
-    import json
+    if existing_threshold_field is not None:
+        metadata["production_operating_threshold"] = existing_threshold_field
+        print("NOTE: preserved existing production_operating_threshold from prior metadata. "
+              "If the retrained model differs meaningfully from the one it was selected "
+              "against, rerun src/models/select_production_threshold.py.")
     OUT_METADATA.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     print(f"Production AI#2 model saved: {OUT_MODEL}")
