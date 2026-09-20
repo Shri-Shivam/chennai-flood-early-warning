@@ -16,3 +16,11 @@ xgboost==3.4.1
 scipy==1.17.1
 pyproj==3.8.0
 pytest==9.1.1
+
+# Backend inference API (src/inference/, src/api/) -- added when the
+# minimal inference pipeline and API were built. httpx is a test-only
+# dependency (FastAPI's TestClient).
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+httpx==0.28.1
