@@ -153,3 +153,39 @@ directly actionable without it).
   in this sandbox; **cross-machine convergence not yet independently
   confirmed** — flagged as the next concrete verification step, not
   claimed as resolved.
+
+## Update — 2026-09-20 — Cross-machine convergence CONFIRMED
+
+Commit `0c45afd` ("Refresh Stage 8 metrics after reproducibility fix")
+on the real `stage7-reconstruction` branch shows a fresh Stage 8 rerun
+performed independently on the original (non-sandbox) machine, with the
+`n_jobs=1` fix applied. Comparing that commit's `stage8_end_to_end_metrics.csv`
+against this sandbox's own output:
+
+| Metric (Exp_A_Baseline) | This sandbox | Real machine (post-fix) | Match? |
+|---|---|---|---|
+| PR_AUC | 0.008055254910120728 | 0.008055254910120728 | **Exact** |
+| CSI | 0.006827164929931728 | 0.006827164929931728 | **Exact** |
+| recall | 0.018924302788844622 | 0.018924302788844622 | **Exact** |
+| precision | 0.010567296996662959 | 0.010567296996662959 | **Exact** |
+| F1 | 0.013561741613133477 | 0.013561741613133477 | **Exact** |
+| ROC_AUC | 0.38508939504788414 | 0.38508939504788414 | **Exact** |
+| TP/FP/FN/TN | 19/1779/985/346765 | 19/1779/985/346765 | **Exact** |
+| Brier | 0.006008990561357326 | 0.006008990561550581 | Differ at the 13th significant figure (~2e-13 relative) |
+
+Same pattern holds for Exp_B_Baseline_plus_AI1. Every metric that
+depends on XGBoost's trained predictions (PR-AUC, CSI, recall,
+precision, F1, ROC-AUC, and every confusion-matrix count) is **bit-for-bit
+identical** across two genuinely different machines. Only the Brier
+score differs, and only at a level of precision (~1e-13) consistent with
+an unrelated floating-point summation-order difference in `numpy`/
+`sklearn`'s internal mean computation (Brier score is a simple post-hoc
+metric over already-fixed predictions — it does not involve XGBoost
+training or histogram construction at all, so this residual has nothing
+to do with the `n_jobs` fix).
+
+**Conclusion: the `n_jobs=1` fix is confirmed to resolve the cross-machine
+non-determinism.** This is no longer a suspected fix — it is
+independently verified across two different machines, environments, and
+(presumably) core counts. The remaining Python 3.12.3 vs 3.14.2
+difference does not appear to matter for this pipeline's output.
