@@ -1,0 +1,32 @@
+{
+  "model": "ai2_baseline (production)",
+  "architecture": "Exp_A_Baseline (Stage 7), no AI#1 probability",
+  "features": [
+    "rain_1h",
+    "rain_3h",
+    "rain_6h",
+    "rain_12h",
+    "rain_24h",
+    "elevation",
+    "slope_degrees",
+    "distance_to_drainage"
+  ],
+  "training_data": "all available class-0/1 rows from inundation_risk_ml_dataset.csv (both Episode_1 and Episode_2 combined, class 2 excluded)",
+  "n_train_rows": 349548,
+  "n_positive": 1004,
+  "n_negative": 348544,
+  "scale_pos_weight": 347.1553784860558,
+  "known_limitation": "This exact architecture was validated via LOEO in Stage 7/8 (see data/processed/stage7_model_comparison.csv), not independently re-validated after refitting on the full combined dataset. No production operating threshold has been separately selected -- see comment in src/models/train_inundation_risk_production.py.",
+  "xgb_params": {
+    "n_estimators": 250,
+    "max_depth": 5,
+    "learning_rate": 0.08,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "random_state": 42,
+    "tree_method": "hist",
+    "scale_pos_weight": 347.1553784860558
+  }
+}
