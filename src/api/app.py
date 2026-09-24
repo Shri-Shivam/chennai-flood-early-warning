@@ -23,7 +23,16 @@ from src.inference.model_loader import (
     SchemaValidationError,
     load_registered,
 )
+from src.services.risk_engine import assess_risk
+from src.services.exposure_service import estimate_exposure
+from src.services.alert_engine import generate_alert
 from src.api.schemas import (
+    AlertResult,
+    AlertsRequest,
+    AlertsResponse,
+    CellRiskResult,
+    EndToEndResponse,
+    ExposureCellResult,
     HealthResponse,
     InundationRequest,
     InundationResponse,
@@ -32,6 +41,11 @@ from src.api.schemas import (
     ModelInfoResponse,
     RainfallFeatures,
     RainfallPredictionResponse,
+    RiskMapCell,
+    RiskMapRequest,
+    RiskMapResponse,
+    RiskRequest,
+    RiskResponse,
 )
 
 app = FastAPI(
@@ -110,3 +124,104 @@ def predict_inundation(request: InundationRequest):
         for cid, p in zip(df["cell_id"], proba)
     ]
     return InundationResponse(model_version=model.path.name, results=results)
+
+
+def _cells_to_dicts(cells):
+    return [c.model_dump() for c in cells]
+
+
+@app.post("/predict/risk", response_model=RiskResponse)
+def predict_risk(request: RiskRequest):
+    """Chains AI#1 (optional) and AI#2 via the risk engine. Both signals
+    are always reported separately -- never blended into one number."""
+    try:
+        rainfall_dict = request.rainfall_features.model_dump() if request.rainfall_features else None
+        result = assess_risk(rainfall_features=rainfall_dict, cells=_cells_to_dicts(request.cells))
+    except SchemaValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    return RiskResponse(
+        rainfall_significant_probability=(
+            result.rainfall.significant_rainfall_probability if result.rainfall else None
+        ),
+        cells=[
+            CellRiskResult(cell_id=c.cell_id, inundation_risk_probability=c.inundation_risk_probability,
+                            risk_class=c.risk_class)
+            for c in result.cells
+        ],
+    )
+
+
+@app.post("/predict/end-to-end", response_model=EndToEndResponse)
+def predict_end_to_end(request: RiskRequest):
+    """Full chain: AI#1 (optional) -> AI#2 -> risk class -> exposure -> alerts.
+    Exposure is honestly reported as unavailable for every cell (see
+    src/services/exposure_service.py) -- no fabricated population numbers."""
+    try:
+        rainfall_dict = request.rainfall_features.model_dump() if request.rainfall_features else None
+        risk = assess_risk(rainfall_features=rainfall_dict, cells=_cells_to_dicts(request.cells))
+    except SchemaValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    exposure = estimate_exposure([c.cell_id for c in risk.cells])
+    alerts = [generate_alert(c.cell_id, c.risk_class) for c in risk.cells]
+
+    return EndToEndResponse(
+        rainfall_significant_probability=(
+            risk.rainfall.significant_rainfall_probability if risk.rainfall else None
+        ),
+        cells=[
+            CellRiskResult(cell_id=c.cell_id, inundation_risk_probability=c.inundation_risk_probability,
+                            risk_class=c.risk_class)
+            for c in risk.cells
+        ],
+        exposure=[
+            ExposureCellResult(
+                cell_id=e.cell_id,
+                estimated_population_exposed=e.estimated_population_exposed,
+                affected_facilities=e.affected_facilities,
+                data_available=e.data_available,
+                reason_if_unavailable=e.reason_if_unavailable,
+            )
+            for e in exposure
+        ],
+        alerts=[
+            AlertResult(cell_id=a.cell_id, risk_class=a.risk_class, recommended_actions=a.recommended_actions)
+            for a in alerts
+        ],
+    )
+
+
+@app.post("/risk-map", response_model=RiskMapResponse)
+def risk_map(request: RiskMapRequest):
+    """POST, not GET -- see RiskMapRequest's docstring for why."""
+    try:
+        result = assess_risk(rainfall_features=None, cells=_cells_to_dicts(request.cells))
+    except SchemaValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    return RiskMapResponse(cells=[
+        RiskMapCell(cell_id=c.cell_id, inundation_risk_probability=c.inundation_risk_probability,
+                    risk_class=c.risk_class)
+        for c in result.cells
+    ])
+
+
+@app.post("/alerts", response_model=AlertsResponse)
+def alerts(request: AlertsRequest):
+    """Given already-computed per-cell risk classes (e.g. from /predict/risk
+    or /risk-map), returns role-specific recommended actions for each."""
+    try:
+        results = [generate_alert(c.cell_id, c.risk_class) for c in request.cells]
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    return AlertsResponse(alerts=[
+        AlertResult(cell_id=a.cell_id, risk_class=a.risk_class, recommended_actions=a.recommended_actions)
+        for a in results
+    ])

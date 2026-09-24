@@ -88,8 +88,9 @@ class InundationResponse(BaseModel):
         "evaluation on only two independently verified historical flood episodes "
         "(see data/processed/stage7_model_comparison.csv). This is a risk score, "
         "not a prediction of exact inundation depth, arrival time, or a guarantee "
-        "that flagged cells will flood. No independently-validated production "
-        "operating threshold currently exists for this model."
+        "that flagged cells will flood. Its operating threshold (used to derive a "
+        "risk_class elsewhere in this API) was selected via spatial-block OOF CV, "
+        "not validated against an independent flood episode."
     )
 
 
@@ -106,3 +107,91 @@ class ModelInfoResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = "ok"
+
+
+# --- Risk / end-to-end / risk-map / alerts ---
+
+class CellRiskResult(BaseModel):
+    cell_id: str
+    inundation_risk_probability: float
+    risk_class: str
+
+
+class RiskRequest(BaseModel):
+    rainfall_features: RainfallFeatures | None = None
+    cells: List[InundationCellFeatures] = Field(min_length=1, max_length=10000)
+
+    @field_validator("cells")
+    @classmethod
+    def unique_cell_ids(cls, cells):
+        ids = [c.cell_id for c in cells]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Duplicate cell_id values in request.")
+        return cells
+
+
+class RiskResponse(BaseModel):
+    rainfall_significant_probability: float | None
+    cells: List[CellRiskResult]
+    limitation_note: str = (
+        "AI#1 (rainfall) and AI#2 (inundation) are reported separately, never "
+        "blended into one number -- Stage 7/8 found no consistent benefit from "
+        "combining them. risk_class boundaries are engineering/demo thresholds, "
+        "not independently validated."
+    )
+
+
+class ExposureCellResult(BaseModel):
+    cell_id: str
+    estimated_population_exposed: int | None
+    affected_facilities: List[str] | None
+    data_available: bool
+    reason_if_unavailable: str | None
+
+
+class AlertResult(BaseModel):
+    cell_id: str
+    risk_class: str
+    recommended_actions: dict
+
+
+class EndToEndResponse(BaseModel):
+    rainfall_significant_probability: float | None
+    cells: List[CellRiskResult]
+    exposure: List[ExposureCellResult]
+    alerts: List[AlertResult]
+    limitation_note: str = (
+        "Retrospective proof-of-concept system. Exposure is not currently "
+        "available for any cell (see docs/backend.md) -- estimated_population_exposed "
+        "and affected_facilities are null, not zero. Alerts are recommendations "
+        "for human decision-makers, never autonomous actions."
+    )
+
+
+class RiskMapRequest(BaseModel):
+    """NOTE: implemented as POST, not GET as originally sketched -- a real
+    risk map needs per-cell feature data as input, and no live spatial
+    data source exists yet to serve a parameterless GET honestly."""
+    cells: List[InundationCellFeatures] = Field(min_length=1, max_length=10000)
+
+
+class RiskMapCell(BaseModel):
+    cell_id: str
+    inundation_risk_probability: float
+    risk_class: str
+
+
+class RiskMapResponse(BaseModel):
+    cells: List[RiskMapCell]
+    note: str = (
+        "Implemented as POST, not GET, because per-cell feature data must be "
+        "supplied by the caller -- no live spatial data source is integrated yet."
+    )
+
+
+class AlertsRequest(BaseModel):
+    cells: List[CellRiskResult] = Field(min_length=1, max_length=10000)
+
+
+class AlertsResponse(BaseModel):
+    alerts: List[AlertResult]

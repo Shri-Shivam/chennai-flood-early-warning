@@ -126,3 +126,90 @@ def test_predict_inundation_missing_field_rejected():
     del bad_cell["distance_to_drainage"]
     r = client.post("/predict/inundation", json={"cells": [bad_cell]})
     assert r.status_code == 422
+
+
+# --- /predict/risk ---
+
+def test_predict_risk_with_rainfall_reports_both_signals():
+    r = client.post("/predict/risk", json={
+        "rainfall_features": VALID_RAINFALL_PAYLOAD,
+        "cells": [VALID_INUNDATION_CELL],
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert body["rainfall_significant_probability"] is not None
+    assert 0.0 <= body["rainfall_significant_probability"] <= 1.0
+    assert body["cells"][0]["risk_class"] in ("NORMAL", "WATCH", "WARNING", "HIGH_RISK")
+
+
+def test_predict_risk_without_rainfall_omits_it_cleanly():
+    r = client.post("/predict/risk", json={"cells": [VALID_INUNDATION_CELL]})
+    assert r.status_code == 200
+    assert r.json()["rainfall_significant_probability"] is None
+
+
+def test_predict_risk_duplicate_cell_rejected():
+    r = client.post("/predict/risk", json={"cells": [VALID_INUNDATION_CELL, VALID_INUNDATION_CELL]})
+    assert r.status_code == 422
+
+
+# --- /predict/end-to-end ---
+
+def test_predict_end_to_end_full_chain():
+    r = client.post("/predict/end-to-end", json={
+        "rainfall_features": VALID_RAINFALL_PAYLOAD,
+        "cells": [VALID_INUNDATION_CELL],
+    })
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["cells"]) == 1
+    assert len(body["exposure"]) == 1
+    assert len(body["alerts"]) == 1
+    # Exposure must be honestly unavailable, never a fabricated number.
+    assert body["exposure"][0]["data_available"] is False
+    assert body["exposure"][0]["estimated_population_exposed"] is None
+    # Alert must match the risk class computed for the same cell.
+    assert body["alerts"][0]["risk_class"] == body["cells"][0]["risk_class"]
+    # Every role must be present with at least one recommended action.
+    for role_actions in body["alerts"][0]["recommended_actions"].values():
+        assert len(role_actions) >= 1
+
+
+# --- /risk-map ---
+
+def test_risk_map_returns_cells():
+    r = client.post("/risk-map", json={"cells": [VALID_INUNDATION_CELL]})
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["cells"]) == 1
+    assert body["cells"][0]["cell_id"] == "cell_0001"
+    assert "POST" in body["note"]
+
+
+def test_risk_map_empty_cells_rejected():
+    r = client.post("/risk-map", json={"cells": []})
+    assert r.status_code == 422
+
+
+# --- /alerts ---
+
+def test_alerts_valid_risk_classes():
+    payload = {"cells": [
+        {"cell_id": "cell_0001", "inundation_risk_probability": 0.9, "risk_class": "HIGH_RISK"},
+        {"cell_id": "cell_0002", "inundation_risk_probability": 0.01, "risk_class": "NORMAL"},
+    ]}
+    r = client.post("/alerts", json=payload)
+    assert r.status_code == 200
+    body = r.json()
+    assert len(body["alerts"]) == 2
+    high_risk_alert = next(a for a in body["alerts"] if a["cell_id"] == "cell_0001")
+    assert "recommend" in " ".join(high_risk_alert["recommended_actions"]["electricity_operator"]).lower() \
+        or "consider" in " ".join(high_risk_alert["recommended_actions"]["electricity_operator"]).lower()
+
+
+def test_alerts_invalid_risk_class_rejected_not_500():
+    payload = {"cells": [
+        {"cell_id": "cell_0001", "inundation_risk_probability": 0.5, "risk_class": "NOT_REAL"},
+    ]}
+    r = client.post("/alerts", json=payload)
+    assert r.status_code == 422  # not a 500 -- this was a real bug found and fixed this session
