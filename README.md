@@ -40,6 +40,7 @@ than hidden.
 pip install -r requirements.txt
 python -m pytest tests -q        # 87 tests
 uvicorn src.api.app:app --reload # backend API, see docs/backend.md
+streamlit run frontend/dashboard.py # Flood Risk Dashboard
 ```
 
 ## Key documents
