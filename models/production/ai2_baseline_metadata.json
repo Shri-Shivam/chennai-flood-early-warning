@@ -1,0 +1,43 @@
+{
+  "model": "ai2_baseline (production)",
+  "architecture": "Exp_A_Baseline (Stage 7), no AI#1 probability",
+  "features": [
+    "rain_1h",
+    "rain_3h",
+    "rain_6h",
+    "rain_12h",
+    "rain_24h",
+    "elevation",
+    "slope_degrees",
+    "distance_to_drainage"
+  ],
+  "training_data": "all available class-0/1 rows from inundation_risk_ml_dataset.csv (both Episode_1 and Episode_2 combined, class 2 excluded)",
+  "n_train_rows": 349548,
+  "n_positive": 1004,
+  "n_negative": 348544,
+  "scale_pos_weight": 347.1553784860558,
+  "known_limitation": "This exact architecture was validated via LOEO in Stage 7/8 (see data/processed/stage7_model_comparison.csv), not independently re-validated after refitting on the full combined dataset. See production_operating_threshold below (and its own limitation note) for the operating threshold, if src/models/select_production_threshold.py has been run.",
+  "xgb_params": {
+    "n_estimators": 250,
+    "max_depth": 5,
+    "learning_rate": 0.08,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "random_state": 42,
+    "tree_method": "hist",
+    "scale_pos_weight": 347.1553784860558
+  },
+  "production_operating_threshold": {
+    "method": "5-fold spatial-block (5km, 500m buffer) OOF CV on the full production training set, CSI-optimized (tie-break: F1, then smaller threshold)",
+    "threshold": 0.9014831182804323,
+    "oof_n": 349548,
+    "oof_csi": 0.04030501089324619,
+    "oof_tp": 222,
+    "oof_fp": 4504,
+    "oof_fn": 782,
+    "oof_tn": 344040,
+    "limitation": "Selected via spatial-only OOF CV, not validated against an independent flood episode (none remains held out once the production model uses both known episodes). Not equivalent to Stage 7/8's LOEO event-generalization evidence."
+  }
+}

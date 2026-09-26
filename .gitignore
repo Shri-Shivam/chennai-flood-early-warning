@@ -218,7 +218,8 @@ __marimo__/
 .streamlit/secrets.toml
 .env
 # Local cache
-cache/# ==========================================
+cache/
+# ==========================================
 # SIH PROJECT DATA
 # ==========================================
 
@@ -239,3 +240,12 @@ stage1_inspection_report.txt
 
 # Local cache
 cache/
+data/processed/stage8_end_to_end_predictions.csv
+
+# Local Earthdata authentication
+.dodsrc
+data/processed/stage7_ai1_ai2_predictions.csv
+
+# Large Stage 5 spatial rainfall datasets
+data/processed/stage5_spatial_rainfall/
+data/processed/stage5_spatial_rainfall_audit/

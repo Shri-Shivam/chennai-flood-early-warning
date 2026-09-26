@@ -1,0 +1,31 @@
+==============================================================================
+SIH26071 STAGE 8 — END-TO-END RETROSPECTIVE BACKTESTING REPORT
+==============================================================================
+
+1. EXECUTIVE OVERVIEW
+Stage 8 validated the complete early-warning chain:
+  Weather at T -> AI #1 Rainfall Model -> AI #2 Inundation Model -> Flood Risk -> Observed Labels
+under strict Leave-One-Episode-Out (LOEO) spatial block evaluation.
+Prediction horizon: 6-hour rainfall forecasting horizon (not a flood-arrival-time model).
+
+2. MODE 1 (FORECAST-DRIVEN) VS MODE 2 (OBSERVED-REFERENCE) COMPARISON
+Mode 1 and Mode 2 show comparable performance across the two evaluated episodes:
+- On Episode 1 (Nov 8-12): Mode 1 achieves higher CSI (0.1369 vs 0.1217) and PR-AUC (0.4303 vs 0.4215).
+- On Episode 2 (Nov 28): Mode 1 achieves slightly lower CSI (0.1743 vs 0.1795) but higher PR-AUC (0.3841 vs 0.3745).
+- Scenario-trigger mode (Mode 1-Trigger) achieves higher CSI on both episodes (0.2245 on Ep2, 0.1913 on Ep1)
+  by suppressing false alarms during low-rain timestamps.
+
+3. AI #1 -> AI #2 ERROR PROPAGATION
+- High rainfall forecast (Nov 10 18:00, prob=0.9608): escalates spatial flood risk in depression zones,
+  achieving high precision (0.7423) during the storm peak.
+- Low rainfall forecast (Nov 28 06:00, prob=0.1025): suppresses false-alarm extent across low-lying terrain.
+
+4. SCIENTIFIC & DATA LIMITATIONS
+- Only two independently verified flood episodes (Nov 8-12 and Nov 28, 2021) exist in the project dataset.
+  Results are proof-of-concept retrospective evidence, not proof of universal operational capability.
+- Single-station weather: AI #1 is point-scale; it cannot capture localized micro-bursts.
+- 250 m spatial risk does NOT imply 250 m rainfall resolution; spatial discrimination comes from topography/drainage.
+- No exact flood depth or exact flood arrival time is predicted.
+
+5. STATUS: STAGE 8 COMPLETE
+==============================================================================

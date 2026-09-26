@@ -1,7 +1,19 @@
-mode,direction,TP,FP,FN,TN,FAR,Recall,Precision,F1,CSI
-Mode_1_Forecast_Driven,Episode_1_to_Episode_2,19,69,21,69655,0.784091,0.475000,0.215909,0.296875,0.174312
-Mode_1_Scenario_Trigger,Episode_1_to_Episode_2,11,9,29,69715,0.450000,0.275000,0.550000,0.366667,0.224490
-Mode_2_Observed_Reference,Episode_1_to_Episode_2,21,77,19,69647,0.785714,0.525000,0.214286,0.304348,0.179487
-Mode_1_Forecast_Driven,Episode_2_to_Episode_1,137,37,827,278783,0.212644,0.142116,0.787356,0.240773,0.136863
-Mode_1_Scenario_Trigger,Episode_2_to_Episode_1,207,118,757,278702,0.363077,0.214730,0.636923,0.321179,0.191312
-Mode_2_Observed_Reference,Episode_2_to_Episode_1,121,30,843,278790,0.198675,0.125519,0.801325,0.217040,0.121730
+experiment,scope,TP,FP,FN,TN
+Exp_A_Baseline,pooled_all_5_events,19,1779,985,346765
+Exp_B_Baseline_plus_AI1,pooled_all_5_events,14,884,990,347660
+Exp_C_NonAI_Rain24h,pooled_all_5_events,620,209159,384,139385
+Exp_A_Baseline,2021-11-08 23:00:00,1,438,48,69277
+Exp_A_Baseline,2021-11-10 11:00:00,10,437,325,69233
+Exp_A_Baseline,2021-11-10 18:00:00,0,438,477,69270
+Exp_A_Baseline,2021-11-12 00:00:00,8,438,95,69289
+Exp_A_Baseline,2021-11-28 06:00:00,0,28,40,69696
+Exp_B_Baseline_plus_AI1,2021-11-08 23:00:00,1,221,48,69494
+Exp_B_Baseline_plus_AI1,2021-11-10 11:00:00,5,221,330,69449
+Exp_B_Baseline_plus_AI1,2021-11-10 18:00:00,0,221,477,69487
+Exp_B_Baseline_plus_AI1,2021-11-12 00:00:00,8,221,95,69506
+Exp_B_Baseline_plus_AI1,2021-11-28 06:00:00,0,0,40,69724
+Exp_C_NonAI_Rain24h,2021-11-08 23:00:00,0,0,49,69715
+Exp_C_NonAI_Rain24h,2021-11-10 11:00:00,0,0,335,69670
+Exp_C_NonAI_Rain24h,2021-11-10 18:00:00,477,69708,0,0
+Exp_C_NonAI_Rain24h,2021-11-12 00:00:00,103,69727,0,0
+Exp_C_NonAI_Rain24h,2021-11-28 06:00:00,40,69724,0,0

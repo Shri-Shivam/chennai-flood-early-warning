@@ -1,31 +1,90 @@
 ==============================================================================
-SIH26071 STAGE 8 — END-TO-END RETROSPECTIVE BACKTESTING REPORT
+SIH26071 STAGE 8 -- END-TO-END RETROSPECTIVE BACKTEST REPORT
 ==============================================================================
 
-1. EXECUTIVE OVERVIEW
-Stage 8 validated the complete early-warning chain:
-  Weather at T -> AI #1 Rainfall Model -> AI #2 Inundation Model -> Flood Risk -> Observed Labels
-under strict Leave-One-Episode-Out (LOEO) spatial block evaluation.
-Prediction horizon: 6-hour rainfall forecasting horizon (not a flood-arrival-time model).
+1. METHODOLOGY
+This backtest reuses Stage 7's already-trained, already-frozen LOEO
+models and their already OOF-selected thresholds. Nothing is retrained
+or re-tuned here. Stage 8's contribution is event-level granularity
+(one result per individual flood timestamp) plus a pooled view across
+all 5 known events, neither of which Stage 7 computed.
 
-2. MODE 1 (FORECAST-DRIVEN) VS MODE 2 (OBSERVED-REFERENCE) COMPARISON
-Mode 1 and Mode 2 show comparable performance across the two evaluated episodes:
-- On Episode 1 (Nov 8-12): Mode 1 achieves higher CSI (0.1369 vs 0.1217) and PR-AUC (0.4303 vs 0.4215).
-- On Episode 2 (Nov 28): Mode 1 achieves slightly lower CSI (0.1743 vs 0.1795) but higher PR-AUC (0.3841 vs 0.3745).
-- Scenario-trigger mode (Mode 1-Trigger) achieves higher CSI on both episodes (0.2245 on Ep2, 0.1913 on Ep1)
-  by suppressing false alarms during low-rain timestamps.
+2. DATA SOURCES
+- data/processed/inundation_risk_ml_dataset.csv (real, 353,130 rows;
+  local-only per .gitignore, not committed to GitHub)
+- data/processed/ai1_retrospective_forecast_2021.csv (real Stage 6 output,
+  trained strictly through 2021-10-31 23:00)
+- models/stage7_integrated/*.json (real, committed, frozen Stage 7 models)
+- data/processed/stage7_model_comparison.csv (frozen thresholds, reused
+  verbatim, never re-selected here)
 
-3. AI #1 -> AI #2 ERROR PROPAGATION
-- High rainfall forecast (Nov 10 18:00, prob=0.9608): escalates spatial flood risk in depression zones,
-  achieving high precision (0.7423) during the storm peak.
-- Low rainfall forecast (Nov 28 06:00, prob=0.1025): suppresses false-alarm extent across low-lying terrain.
+3. LEAKAGE / TEMPORAL CONTROLS (inherited from Stage 6 and Stage 7)
+- Every event is scored using the frozen model trained on the OTHER
+  episode -- never the episode containing that event.
+- AI#1 probability is merged on exact timestamp only; a missing
+  required timestamp raises a hard error.
+- Class 2 (uncertain) rows excluded from this binary evaluation.
+- No threshold is selected in this script -- all thresholds are frozen
+  values copied from stage7_model_comparison.csv.
 
-4. SCIENTIFIC & DATA LIMITATIONS
-- Only two independently verified flood episodes (Nov 8-12 and Nov 28, 2021) exist in the project dataset.
-  Results are proof-of-concept retrospective evidence, not proof of universal operational capability.
-- Single-station weather: AI #1 is point-scale; it cannot capture localized micro-bursts.
-- 250 m spatial risk does NOT imply 250 m rainfall resolution; spatial discrimination comes from topography/drainage.
-- No exact flood depth or exact flood arrival time is predicted.
+4. EXPERIMENT DEFINITIONS
+- Exp_A_Baseline: observed antecedent rainfall (rain_1h..rain_24h) +
+  terrain (elevation, slope, distance_to_drainage). No forecast signal.
+- Exp_B_Baseline_plus_AI1: Exp A features + AI#1's forecast probability
+  (the only genuinely forward-looking / forecast-driven signal here).
+- Exp_C_NonAI_Rain24h: deterministic, non-AI score = raw rain_24h (mm).
+  Brier score is not applicable (NaN) for this experiment -- it is not
+  a probability.
 
-5. STATUS: STAGE 8 COMPLETE
+5. IMPORTANT MODELING DISTINCTION
+Exp A's rainfall features are OBSERVED antecedent accumulations
+available at each timestamp T, not a forecast. The only forecast-driven
+component in this backtest is AI#1's probability in Exp B. This is a
+retrospective integration backtest of already-fitted models, not an
+independent real-time operational simulation.
+
+6. POOLED RESULTS (all 5 known events together)
+- Exp_A_Baseline:               CSI=0.0068, PR-AUC=0.0081, Recall=0.0189, Precision=0.0106, TP=19, FP=1779
+- Exp_B_Baseline_plus_AI1:      CSI=0.0074, PR-AUC=0.0079, Recall=0.0139, Precision=0.0156, TP=14, FP=884
+- Exp_C_NonAI_Rain24h:          CSI=0.0030, PR-AUC=0.0035, Recall=0.6175, Precision=0.0030, TP=620, FP=209159
+
+7. EVENT-LEVEL BREAKDOWN (per individual flood timestamp)
+             experiment           timestamp      CSI   recall  precision  TP    FP  FN    TN
+         Exp_A_Baseline 2021-11-08 23:00:00 0.002053 0.020408   0.002278   1   438  48 69277
+         Exp_A_Baseline 2021-11-10 11:00:00 0.012953 0.029851   0.022371  10   437 325 69233
+         Exp_A_Baseline 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   438 477 69270
+         Exp_A_Baseline 2021-11-12 00:00:00 0.014787 0.077670   0.017937   8   438  95 69289
+         Exp_A_Baseline 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0    28  40 69696
+Exp_B_Baseline_plus_AI1 2021-11-08 23:00:00 0.003704 0.020408   0.004505   1   221  48 69494
+Exp_B_Baseline_plus_AI1 2021-11-10 11:00:00 0.008993 0.014925   0.022124   5   221 330 69449
+Exp_B_Baseline_plus_AI1 2021-11-10 18:00:00 0.000000 0.000000   0.000000   0   221 477 69487
+Exp_B_Baseline_plus_AI1 2021-11-12 00:00:00 0.024691 0.077670   0.034934   8   221  95 69506
+Exp_B_Baseline_plus_AI1 2021-11-28 06:00:00 0.000000 0.000000   0.000000   0     0  40 69724
+    Exp_C_NonAI_Rain24h 2021-11-08 23:00:00 0.000000 0.000000   0.000000   0     0  49 69715
+    Exp_C_NonAI_Rain24h 2021-11-10 11:00:00 0.000000 0.000000   0.000000   0     0 335 69670
+    Exp_C_NonAI_Rain24h 2021-11-10 18:00:00 0.006796 1.000000   0.006796 477 69708   0     0
+    Exp_C_NonAI_Rain24h 2021-11-12 00:00:00 0.001475 1.000000   0.001475 103 69727   0     0
+    Exp_C_NonAI_Rain24h 2021-11-28 06:00:00 0.000573 1.000000   0.000573  40 69724   0     0
+
+8. BASELINE COMPARISON
+Exp B's pooled CSI (0.0074) exceeds Exp A's (0.0068).
+This pooled comparison combines two structurally different events (4 timestamps from Episode_1, 1 from Episode_2) and should be read alongside the event-level breakdown above, not in isolation -- a pooled number can hide event-to-event inconsistency.
+
+9. SCIENTIFIC CONCLUSION
+Only two independently verified flood episodes (5 total event timestamps) exist in this project's ground-truth data. These results are retrospective proof-of-concept evidence for the specific 5 historical moments evaluated, not evidence of general operational accuracy. Stage 7 already found no consistent incremental value from AI#1 integration across its two LOEO directions; this event-level view does not overturn that finding -- see the per-event breakdown above for where (if anywhere) Exp B and Exp A diverge.
+
+10. LIMITATIONS
+- Only 5 known flood event timestamps total; no statistical claim of
+  generalization is made or intended.
+- This backtest reuses Stage 7's frozen models; it does not repeat or
+  re-verify Stage 7's own spatial-block inner-CV leakage controls --
+  those were already established and tested in Stage 7 itself.
+- Exp_C's Brier score is not applicable (raw mm is not a probability).
+- '250m spatial risk' does not imply 250m rainfall resolution --
+  rainfall features are a single time series broadcast across the
+  spatial grid; spatial discrimination comes from terrain/drainage.
+- No exact flood depth, exact flood arrival time, or exact number of
+  affected people is claimed anywhere in this report.
+
+11. STATUS: STAGE 8 GENUINELY RECONSTRUCTED AND EXECUTED
 ==============================================================================
