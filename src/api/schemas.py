@@ -195,3 +195,36 @@ class AlertsRequest(BaseModel):
 
 class AlertsResponse(BaseModel):
     alerts: List[AlertResult]
+
+
+# --- Live Weather to AI#2 Prediction ---
+
+
+class LiveWeatherRequest(BaseModel):
+    """Request for live weather-based inundation prediction."""
+    latitude: float = Field(default=13.0827, ge=-90, le=90, description="Latitude in decimal degrees")
+    longitude: float = Field(default=80.2707, ge=-180, le=180, description="Longitude in decimal degrees")
+    past_days: int = Field(default=2, ge=0, le=30, description="Number of past days of weather data to fetch")
+    forecast_days: int = Field(default=1, ge=0, le=10, description="Number of forecast days of weather data to fetch")
+
+
+class LiveInundationCellResult(BaseModel):
+    """Result for a single spatial cell from live weather prediction."""
+    cell_id: str
+    inundation_risk_probability: float
+
+
+class LiveInundationResponse(BaseModel):
+    """Response for live weather-based inundation prediction."""
+    model_version: str
+    rainfall_probability: float  # AI#1 prediction: P[≥20mm rainfall in next 6h]
+    timestamp: str  # ISO format timestamp of the weather data used
+    cells: List[LiveInundationCellResult]
+    limitation_note: str = (
+        "Live weather prediction uses current Open-Meteo data. "
+        "AI#1 predicts P[≥20mm rainfall in next 6h]. "
+        "AI#2 predicts inundation risk using live rainfall features (rain_1h..rain_24h) "
+        "combined with static spatial features (elevation, slope, distance_to_drainage). "
+        "This is a retrospective proof-of-concept model. "
+        "See AI#1 and AI#2 limitation notes for details."
+    )

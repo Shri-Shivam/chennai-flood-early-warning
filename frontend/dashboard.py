@@ -60,12 +60,13 @@ def main():
     st.caption("AI/ML-based Integrated Heavy Rainfall Early Warning and Inundation Prediction System")
 
     # Main tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "Rainfall Prediction",
         "Inundation Prediction",
         "Risk Assessment Map",
         "End-to-End",
-        "Historical Demo"
+        "Historical Demo",
+        "Live Risk Map"
     ])
 
     # --- TAB 1: RAINFALL PREDICTION ---
@@ -376,6 +377,205 @@ def main():
                         st_folium(m_hist, width=1000, height=600)
                     else:
                         st.error("Failed to load selected observed data.")
+
+    # --- TAB 6: LIVE RISK MAP ---
+    with tab6:
+        st.header("🌧️ Live Risk Map")
+        st.info("Real-time inundation risk prediction using live weather data from Open-Meteo")
+
+        # Controls for live prediction
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            latitude = st.number_input(
+                "Latitude",
+                value=13.0827,
+                min_value=-90.0,
+                max_value=90.0,
+                step=0.0001,
+                format="%.4f",
+                help="Latitude in decimal degrees (Chennai center: 13.0827)"
+            )
+        with col2:
+            longitude = st.number_input(
+                "Longitude",
+                value=80.2707,
+                min_value=-180.0,
+                max_value=180.0,
+                step=0.0001,
+                format="%.4f",
+                help="Longitude in decimal degrees (Chennai center: 80.2707)"
+            )
+        with col3:
+            st.write("")  # Spacer
+            predict_button = st.button("🔄 Update Live Prediction", type="primary")
+
+        # Optional: Auto-refresh controls
+        with st.expander("⚙️ Advanced Options"):
+            col1, col2 = st.columns(2)
+            with col1:
+                past_days = st.number_input(
+                    "Past Days",
+                    min_value=0,
+                    max_value=30,
+                    value=2,
+                    help="Number of past days of weather data to fetch for feature engineering"
+                )
+            with col2:
+                forecast_days = st.number_input(
+                    "Forecast Days",
+                    min_value=0,
+                    max_value=10,
+                    value=1,
+                    help="Number of forecast days of weather data to fetch"
+                )
+
+        # Live prediction button
+        if predict_button:
+            with st.spinner("Fetching live weather data and generating predictions..."):
+                # Call the live inundation prediction endpoint
+                request_data = {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "past_days": past_days,
+                    "forecast_days": forecast_days
+                }
+                live_result = enhanced_api_call("/predict/live-inundation", "POST", request_data)
+
+                if live_result:
+                    st.success("Live prediction successful!")
+
+                    # Display AI#1 rainfall prediction
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric(
+                            label="AI#1: Significant Rainfall Probability",
+                            value=f"{live_result.get('rainfall_probability', 0):.1%}"
+                        )
+                    with col2:
+                        st.metric(
+                            label="Model Version",
+                            value=live_result.get('model_version', 'Unknown')
+                        )
+
+                    st.caption(live_result.get('limitation_note', ''))
+
+                    # Display live risk map
+                    if 'cells' in live_result and len(live_result['cells']) > 0:
+                        st.subheader("Live Inundation Risk Map")
+
+                        # Load spatial features for mapping
+                        spatial_data = load_geojson(SPATIAL_FEATURES_PATH)
+                        if spatial_data:
+                            # Create a dict for quick lookup of predictions by cell_id
+                            prediction_dict = {
+                                cell['cell_id']: cell['inundation_risk_probability']
+                                for cell in live_result['cells']
+                            }
+
+                            # Create Folium map
+                            m_live = folium.Map(
+                                location=[latitude, longitude],
+                                zoom_start=10,
+                                tiles="CartoDB positron"
+                            )
+
+                            # Add risk layers for each cell
+                            for feature in spatial_data["features"]:
+                                props = feature["properties"]
+                                cell_id = str(props["cell_id"])
+
+                                if cell_id in prediction_dict:
+                                    prob = prediction_dict[cell_id]
+                                    # Determine risk class based on probability (matching backend thresholds)
+                                    if prob >= 0.60:
+                                        risk_class = "HIGH_RISK"
+                                        color = "red"
+                                    elif prob >= 0.30:
+                                        risk_class = "WARNING"
+                                        color = "orange"
+                                    elif prob >= 0.10:
+                                        risk_class = "WATCH"
+                                        color = "yellow"
+                                    else:
+                                        risk_class = "NORMAL"
+                                        color = "green"
+
+                                    # Style based on risk probability
+                                    fill_opacity = min(0.9, 0.1 + prob * 0.8)  # Scale opacity with probability
+
+                                    folium.GeoJson(
+                                        feature["geometry"],
+                                        style_function=lambda x, prob=prob, fill_opacity=fill_opacity: {
+                                            "fillColor": color,
+                                            "color": color,
+                                            "weight": 1,
+                                            "fillOpacity": fill_opacity
+                                        },
+                                        tooltip=f"Cell {cell_id}: {risk_class} ({prob:.1%})"
+                                    ).add_to(m_live)
+                                else:
+                                    # Cells without predictions (shouldn't happen, but safe fallback)
+                                    folium.GeoJson(
+                                        feature["geometry"],
+                                        style_function=lambda x: {
+                                            "fillColor": "gray",
+                                            "color": "gray",
+                                            "weight": 1,
+                                            "fillOpacity": 0.1
+                                        },
+                                        tooltip=f"Cell {cell_id}: No prediction"
+                                    ).add_to(m_live)
+
+                            # Add legend
+                            st.markdown("""
+                            **Risk Legend:**
+                            - 🟢 **NORMAL**: < 10% risk
+                            - 🟡 **WATCH**: 10-30% risk
+                            - 🟠 **WARNING**: 30-60% risk
+                            - 🔴 **HIGH_RISK**: ≥ 60% risk
+                            """, unsafe_allow_html=True)
+
+                            # Display the map
+                            st_folium(m_live, width=1000, height=500)
+
+                            # Summary statistics
+                            probs = list(prediction_dict.values())
+                            if probs:
+                                st.subheader("Prediction Summary")
+                                col1, col2, col3, col4 = st.columns(4)
+                                with col1:
+                                    st.metric("Total Cells", len(probs))
+                                with col2:
+                                    st.metric("Avg Risk", f"{sum(probs)/len(probs):.1%}")
+                                with col3:
+                                    st.metric("Max Risk", f"{max(probs):.1%}")
+                                with col4:
+                                    high_risk_count = sum(1 for p in probs if p >= 0.60)
+                                    st.metric("High Risk Cells", f"{high_risk_count}")
+                    else:
+                        st.warning("No spatial prediction data returned")
+                else:
+                    st.error("Failed to get live prediction. Please check that the backend API is running.")
+        else:
+            # Show placeholder when no prediction has been run yet
+            st.info("👆 Click 'Update Live Prediction' to fetch real-time weather data and generate inundation risk predictions")
+
+            # Show example of what the interface will look like
+            st.subheader("Example Interface (when prediction is run)")
+            st.write("The live prediction will show:")
+            st.write("- AI#1 rainfall probability (P[≥20mm rainfall in next 6h])")
+            st.write("- Live inundation risk map for all spatial cells")
+            st.write("- Risk legend and summary statistics")
+
+            # Display placeholder map
+            st.subheader("Placeholder Map")
+            placeholder_map = folium.Map(location=[13.0827, 80.2707], zoom_start=10, tiles="CartoDB positron")
+            folium.GeoJson(
+                load_geojson(SPATIAL_FEATURES_PATH),
+                style_function=lambda x: {"fillColor": "lightgray", "color": "gray", "weight": 1, "fillOpacity": 0.2},
+                tooltip="Spatial Cells (Live predictions will appear here)"
+            ).add_to(placeholder_map)
+            st_folium(placeholder_map, width=1000, height=400)
 
 if __name__ == "__main__":
     main()

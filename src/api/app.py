@@ -37,6 +37,9 @@ from src.api.schemas import (
     InundationRequest,
     InundationResponse,
     InundationCellResult,
+    LiveInundationResponse,
+    LiveInundationCellResult,
+    LiveWeatherRequest,
     ModelInfo,
     ModelInfoResponse,
     RainfallFeatures,
@@ -225,3 +228,62 @@ def alerts(request: AlertsRequest):
         AlertResult(cell_id=a.cell_id, risk_class=a.risk_class, recommended_actions=a.recommended_actions)
         for a in results
     ])
+
+
+# --- Live Weather to AI#2 Prediction Endpoint ---
+
+
+@app.post("/predict/live-inundation", response_model=LiveInundationResponse)
+def predict_live_inundation(request: LiveWeatherRequest):
+    """Predict inundation risk using live weather data.
+
+    Chains: Open-Meteo → AI#1 feature engineering → AI#1 rainfall prediction →
+    extract rain_1h..rain_24h features → AI#2 spatial inundation prediction
+    for all cells in the study area.
+    """
+    try:
+        # Import here to avoid circular dependencies
+        from src.services.spatial_ai2_service import predict_spatial_inundation_from_weather
+        from src.services.weather_to_ai1_service import ChennaiPoint
+
+        # Execute the live weather → AI#1 → AI#2 chain
+        spatial_predictions = predict_spatial_inundation_from_weather(
+            point=ChennaiPoint(latitude=request.latitude, longitude=request.longitude),
+            past_days=request.past_days,
+            forecast_days=request.forecast_days
+        )
+
+        # We also need to get the AI#1 prediction to include in the response
+        from src.services.weather_to_ai1_service import predict_rainfall_from_weather
+        weather_result = predict_rainfall_from_weather(
+            point=ChennaiPoint(latitude=request.latitude, longitude=request.longitude),
+            past_days=request.past_days,
+            forecast_days=request.forecast_days
+        )
+
+        # Convert to response format
+        from datetime import datetime
+        return LiveInundationResponse(
+            model_version="ai2_baseline_production",  # Hardcoded for now, could be made dynamic
+            rainfall_probability=weather_result.significant_rainfall_probability,
+            timestamp=datetime.now().isoformat(),
+            cells=[
+                LiveInundationCellResult(
+                    cell_id=pred["cell_id"],
+                    inundation_risk_probability=pred["inundation_risk_probability"]
+                )
+                for pred in spatial_predictions
+            ]
+        )
+    except Exception as e:
+        # Handle various potential errors from the underlying services
+        if "Failed to ingest weather data" in str(e) or "Open-Meteo request failed" in str(e):
+            raise HTTPException(status_code=503, detail=f"Weather service unavailable: {str(e)}")
+        elif "Insufficient weather data" in str(e) or "No complete feature rows" in str(e):
+            raise HTTPException(status_code=422, detail=f"Insufficient weather data for prediction: {str(e)}")
+        elif "Missing required rainfall features" in str(e) or "Missing required spatial feature" in str(e):
+            raise HTTPException(status_code=422, detail=f"Feature engineering error: {str(e)}")
+        elif "Failed to load AI#2 model" in str(e):
+            raise HTTPException(status_code=503, detail=f"Model unavailable: {str(e)}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
