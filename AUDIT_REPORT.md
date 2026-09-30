@@ -1,60 +1,89 @@
-# AUDIT_REPORT.md — SIH26071 Repository Audit
+A. Repository state
+- Current branch: stage7-reconstruction
+- HEAD SHA: c9380535c079361101a42a3212111b809a9698b3
+- Working tree status: clean (no modified or staged files)
+- Untracked files: present (list includes data/processed/ai1_stage6_report_reconstructed_backup.txt, data/processed/ai1_walk_forward_metrics_reconstructed_backup.csv, graphify-out/, master_final_verify.ps1, src/data/era5_land/, src/data/imerg/, src/data/src/, src/rainfall_model/walk_forward_forecast.py.backup_20260911_111214, src/rainfall_model/walk_forward_forecast.py.backup_20260911_111236, src/rainfall_model/walk_forward_forecast.py.before_dynamic_weight.bak, src/rainfall_model/walk_forward_forecast_reconstructed_backup.py, "truction\357\200\242q", verify-and-update-pr.ps1)
 
-Date: 2026-09-14
-Scope: `stage7-reconstruction` branch at commit `593ede0` (compared against `main` at `82a7123`).
-Auditor note: this audit was performed from a sandboxed clone with no GitHub API
-or push-credential access. GitHub-side PR metadata (review state, CI status)
-could not be independently verified and is marked as such below.
+B. PR state
+- PR number: 1
+- Title: Complete SIH26071 Stage 7 Validation and Production Backend
+- State: open
+- Base branch: main
+- Head branch: stage7-reconstruction
+- Head SHA: c9380535c079361101a42a3212111b809a9698b3
+- Merge state: clean
+- Merged: false
+- URL: https://github.com/Shri-Shivam/chennai-flood-early-warning/pull/1
 
-## 1. Repository state
+C. Commit audit
+- Total commits in PR: 33
+- All commits are related to the project (Stage 6/7/8 reconstruction, backend, reproducibility, etc.)
+- No suspicious or unrelated commits found.
 
-- Current branch: `stage7-reconstruction`
-- HEAD: `593ede0` ("Ignore local Earthdata credentials")
-- Parent chain: `593ede0` → `9f32a41` (genuine Stage 8 reconstruction) → `1d69108` (Stage 6 validation) → ... → `72702b9` (Stage 7 reconstruction) → `03bf8e2`/`ebd447e` (Stage 8 quarantine, 2026-09-12) → `82a7123` (main, the original unverified "restore" commit)
-- Remote tracking: local sandbox clone is in sync with `origin/stage7-reconstruction` as of this audit (previous sandbox-local commit from the prior session turn was superseded by the real pushed commit and discarded via `git reset --hard`, which rewrote nothing published)
-- PR #1 state: **NOT INDEPENDENTLY VERIFIED** — no GitHub API/web access available in this environment to confirm review status, CI checks, or mergeability
+D. Changed-file audit
+- Total changed files: 71
+- Key directories and files present:
+  - src/api/: __init__.py, app.py, schemas.py
+  - src/inference/: __init__.py, model_loader.py
+  - src/models/: select_production_threshold.py, train_inundation_risk_production.py, train_inundation_risk_stage7.py
+  - src/services/: __init__.py, alert_engine.py, exposure_service.py, inundation_service.py, rainfall_service.py, risk_engine.py
+  - tests/: multiple test files (test_api.py, test_config.py, test_end_to_end_temporal_integrity.py, test_inference.py, test_ingestion.py, test_services.py, test_stage7_integration.py, test_stage7_temporal_alignment.py, test_temporal_leakage.py)
+  - models/production/: ai2_baseline.json, ai2_baseline_metadata.json
+  - requirements.txt: present
+  - docs/: backend.md, flood_event_inventory.md, reproducibility.md
+  - README.md: present
+  - pytest.ini: present with [pytest] norecursedirs = archive
+  - .gitignore: present with Stage 5 ignore rules (data/processed/stage5_spatial_rainfall/ and data/processed/stage5_spatial_rainfall_audit/)
+- No accidental files (backup, ZIP, prediction dumps, temp, credentials, local env, forensic archive contents) found in the changed files list that are obviously problematic.
+  - The archive directory is being added intentionally (as part of Stage 8 quarantine) and is documented.
+  - Some CSV and TXT files in data/processed are present but are relatively small (under 100K) and appear to be reports.
+  - Large files (like inundation_risk_ml_dataset.csv, stage8_end_to_end_predictions.csv, stage7_ai1_ai2_predictions.csv) are not in the changed files list and are likely ignored by .gitignore.
 
-## 2. What is VERIFIED (this session, real commands, real data)
+E. Backend completeness
+- Model loading/schema validation: present (src/inference/model_loader.py)
+- Production AI#2 model: present (models/production/ai2_baseline.json and metadata)
+- Production threshold configuration: present (src/models/select_production_threshold.py and commit e49bfc5)
+- Centralized configuration: present (src/config.py)
+- Open-Meteo ingestion: present (src/ingestion/open_meteo.py)
+- Risk service: present (src/services/risk_engine.py)
+- Exposure service: present (src/services/exposure_service.py)
+- Alert service: present (src/services/alert_engine.py)
+- FastAPI endpoints: present (src/api/app.py and src/api/schemas.py, with endpoints expanded in commit c537354)
+- Tests: present (tests directory with multiple test files)
+- Backend documentation: present (docs/backend.md)
 
-- 36/36 tests pass across `tests/test_temporal_leakage.py` (10), `tests/test_stage7_integration.py` (9), `tests/test_stage7_temporal_alignment.py` (3, one fixed this session), `tests/test_end_to_end_temporal_integrity.py` (14).
-- `python -m compileall src tests`: clean, no errors.
-- `git diff --check`: clean.
-- No secrets, credentials, `.env`, or `.dodsrc` content anywhere in the tracked tree (`593ede0` proactively gitignores `.dodsrc`).
-- No file over ~800KB in the tracked tree; the two known large prediction dumps (Stage 7's ~127MB, Stage 8's ~94MB) are correctly gitignored and absent from the repository.
-- No hardcoded historical/fabricated reference numbers found anywhere in live `.py` source (scanned specifically for the known-fabricated Stage 7 numbers from commit `82a7123`).
-- Spatial centroid/distance calculations in `src/features/build_spatial_features.py` and `src/dem/calculate_drainage_distance.py` **correctly reproject to `EPSG:32644` before computing centroids/distances**, then convert to `EPSG:4326` only for storage. This was a specific concern raised for this audit; verified NOT a bug.
-- Stage 6/7/8 leakage controls (temporal cutoffs, threshold isolation, class-2 exclusion, exact-timestamp AI#1 merging, frozen-model reuse in Stage 8) all independently tested and passing, per the 36 tests above.
-- Stage 8's quarantine gap (7 files duplicated outside `archive/` — found and fixed in the prior session) remains fixed; re-checked this session, confirmed no live-path duplication has recurred.
+F. Security/accidental-file audit
+- No credentials or secrets observed in the changed files list.
+- The commit "Ignore local Earthdata credentials" (593ede0) suggests that credentials are being ignored via .gitignore (we saw .dodsrc in .gitignore).
+- No obvious accidental files (like backup files, ZIP files, etc.) in the changed files list.
+- The archive directory is being added but is part of the intended work (forensic archive for unverified recovery artifacts) and is documented.
 
-## 3. What is UNCERTAIN (cannot be resolved from this environment)
+G. Test results
+- Could not run pytest because it is not installed in the environment (attempted python -m pytest -q, module not found).
+- Ran python -m compileall -q src tests: completed with no output (no syntax errors).
+- Ran git diff --check: completed with no output (no whitespace errors).
+- According to the PR description, the final local verification showed 87 tests passed, 1 warning.
 
-- Whether GitHub's PR #1 UI actually reflects this branch's current HEAD, whether any CI is configured/passing, and whether any review comments exist.
-- Whether the exact package/library versions used to produce the currently-committed Stage 6/7/8 metrics match the project's documented spec (Python 3.14.2 / pandas 3.0.5 / sklearn 1.9.0) — this session's sandbox uses slightly different versions, and metric discrepancies consistent with that have been observed and reported (not resolved) throughout this project's history.
-- Whether "PR #1" scope matches exactly what `RECOVERY.md` and `PROJECT_PROGRESS.md` claim, since PR content couldn't be fetched.
+H. Documentation/limitations audit
+- PR description includes sections on limitations that match the known limitations:
+  - only two independently verified flood episodes
+  - production AI#2 threshold is based on spatial-block OOF CV, NOT LOEO validation
+  - exposure data is not yet backed by real operational exposure data
+  - IMERG/ERA5-Land are not integrated into the production ingestion path
+  - deployment/auth/TLS/dashboard are not yet implemented
+  - AI#1 and AI#2 integration is exploratory
+  - results are proof-of-concept and not generalizable operational validation
+- No discrepancies found between the PR description and these known limitations.
 
-## 4. What was BROKEN (found and fixed this session)
+I. Issues found
+- Informational: There are untracked files in the working directory (backup files, data, scripts, etc.) but they are not part of the PR and are not to be modified.
+- Informational: The test suite could not be run because pytest is not installed. However, this is an environment issue and not a problem with the PR.
+- Informational: The large data files are ignored by .gitignore and not present in the PR, which is correct.
 
-- `tests/test_stage7_temporal_alignment.py::test_stage7_source_has_no_future_rain_feature` used a naive whole-file substring search for `"future_6h_rain"`, which false-positived on legitimate docstring/comment text and the `forbidden` leakage-guard set itself (lines that *mention* the column specifically in order to exclude it). Fixed to check the actual `LEARNED_EXPERIMENTS` feature-set definitions instead, consistent with the stronger equivalent check already in `tests/test_stage7_integration.py`. This was a test-quality defect, not a real leakage bug — confirmed by direct inspection of every occurrence of the string in the source file.
-
-## 5. What is DUPLICATED
-
-- `tests/test_stage7_temporal_alignment.py` (3 tests, minimal) and `tests/test_stage7_integration.py` (9 tests, comprehensive) overlap in purpose but are not identical — the former predates the latter and does lighter-weight file-existence + the now-fixed feature check. Recommend keeping both (redundancy in tests is not harmful) but noting the overlap; consolidating is a low-priority cleanup, not a defect.
-
-## 6. What should REMAIN
-
-- All current Stage 6/7/8 source, tests, and committed outputs — genuinely executed, independently verified this session and in prior sessions.
-- The `archive/unverified_recovery_2026-09-09/` and `archive/unverified_recovery_2026-09-12/` quarantine directories — full forensic record, must not be deleted.
-
-## 7. What should be QUARANTINED
-
-- Nothing new found this session. The known quarantine gap from the prior session (7 duplicated Stage 8 files outside `archive/`) was already fixed and remains fixed.
-
-## 8. What should be FIXED (beyond what was fixed this session)
-
-- None found as blocking. See Section 9 for priority-ranked next steps (non-blocking).
-
-## 9. Priority ranking for next work
-
-1. **Independent execution on the actual target environment** (Python 3.14.2/pandas 3.0.5/sklearn 1.9.0) to resolve the persistent, never-fully-confirmed metric-discrepancy hypothesis (environment version differences). This is higher priority than any new feature — it's a reproducibility gap in already-claimed-verified work.
-2. **More independent flood events**, if reproducibly obtainable from authoritative sources (NRSC/NDEM/IMD), since the 2-episode limitation is the single biggest scientific constraint on every downstream claim in this project. Not attempted this session — requires new external data acquisition, which is out of scope for an audit-and-fix pass and was not requested.
-3. Everything else (Stage 5/ERA5-Land masking, exposure module, warning-level calibration, dashboard) is explicitly gated behind the above two items being resolved or explicitly accepted as permanent limitations, per this project's own stated priority order (scientific correctness > temporal/spatial integrity > reproducibility > validation > ... > presentation polish).
+J. Merge-readiness checklist
+- PR is open and mergeable (mergeable_state: clean).
+- Branch is up to date with the base (local HEAD and upstream are identical).
+- Changed files are appropriate and no obvious problematic files are included.
+- Backend appears to be complete as per the scope.
+- Documentation and limitations are accurately described.
+- Test suite status: PR description reports 87 tests passed, 1 warning (could not be independently verified due to missing pytest in environment).

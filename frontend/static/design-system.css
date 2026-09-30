@@ -1,0 +1,8 @@
+/* Alert Items - FIXED: Reduced border thickness from 3px to 1px to address impeccable design tool alert */
+.alert-item {
+  padding: var(--spacing-2) var(--spacing-3);
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--radius-md);
+  border-left: 1px solid;
+  font-size: 0.875rem;
+}

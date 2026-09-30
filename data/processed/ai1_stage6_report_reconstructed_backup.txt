@@ -1,0 +1,3 @@
+Stage 6 reconstructed implementation.
+November 2021 precision=0.5455; recall=0.3077; F1=0.3934; PR-AUC=0.4122; Brier=0.0497
+Future T+1..T+6 rainfall is target-only information.
