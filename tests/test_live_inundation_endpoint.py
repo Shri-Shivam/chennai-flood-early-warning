@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
 
 from src.api.app import app
+from src.inference.model_loader import load_registered
 
 
 class TestLiveInundationEndpoint:
@@ -12,7 +13,7 @@ class TestLiveInundationEndpoint:
         """Set up test client."""
         self.client = TestClient(app)
 
-    @patch('src.services.spatial_ai2_service.predict_spatial_inundation_from_weather')
+    @patch('src.services.spatial_ai2_service.predict_spatial_inundation')
     @patch('src.services.weather_to_ai1_service.predict_rainfall_from_weather')
     def test_predict_live_inundation_success(
         self, mock_predict_rainfall, mock_predict_spatial
@@ -21,6 +22,9 @@ class TestLiveInundationEndpoint:
         # Mock weather → AI#1 result
         mock_weather_result = Mock()
         mock_weather_result.significant_rainfall_probability = 0.75
+        mock_weather_result.features = {
+            "rain_1h": 0.1, "rain_3h": 0.5, "rain_6h": 1.0, "rain_12h": 2.0, "rain_24h": 3.0,
+        }
         mock_predict_rainfall.return_value = mock_weather_result
 
         # Mock AI#2 spatial inference result
@@ -55,7 +59,9 @@ class TestLiveInundationEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["model_version"] == "ai2_baseline_production"
+        # model_version is read from the registered AI#2 model's own metadata
+        # via the loader's version accessor -- never a literal in the handler.
+        assert data["model_version"] == load_registered("ai2_baseline_production").version
         assert data["rainfall_probability"] == 0.75
         assert "timestamp" in data
         assert len(data["cells"]) == 2
@@ -65,9 +71,15 @@ class TestLiveInundationEndpoint:
         assert data["cells"][1]["inundation_risk_probability"] == 0.7
         assert "limitation_note" in data
 
-        # Verify mocks were called with correct parameters
-        mock_predict_rainfall.assert_called_once()
+        # Verify mocks were called with correct parameters.
+        # The live weather → AI#1 stage must run EXACTLY ONCE per request;
+        # this assertion is the regression guard for the duplicated-AI#1 bug.
+        assert mock_predict_rainfall.call_count == 1
         mock_predict_spatial.assert_called_once()
+
+        # AI#2 must consume the features from that single AI#1 execution
+        # rather than recomputing them.
+        assert mock_predict_spatial.call_args[1]["weather_features"] is mock_weather_result.features
 
         # Check that the point was constructed correctly
         call_args = mock_predict_rainfall.call_args
@@ -123,11 +135,8 @@ class TestLiveInundationEndpoint:
         )
         assert response.status_code == 422
 
-    @patch('src.services.spatial_ai2_service.predict_spatial_inundation_from_weather')
     @patch('src.services.weather_to_ai1_service.predict_rainfall_from_weather')
-    def test_predict_live_inundation_service_error(
-        self, mock_predict_rainfall, mock_predict_spatial
-    ):
+    def test_predict_live_inundation_service_error(self, mock_predict_rainfall):
         """Test handling of service errors."""
         # Simulate weather service failure
         mock_predict_rainfall.side_effect = Exception("Failed to ingest weather data: Open-Meteo request failed")

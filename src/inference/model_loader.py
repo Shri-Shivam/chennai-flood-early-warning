@@ -11,7 +11,8 @@ DataFrame). This module reads that embedded list directly from the model
 file rather than hard-coding a second copy of it, so there is exactly
 one source of truth for "what features does this model expect."
 """
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -33,6 +34,24 @@ class LoadedModel:
     path: Path
     feature_names: tuple
     model: object  # XGBClassifier or XGBRegressor
+    metadata: dict = field(default_factory=dict)
+
+    @property
+    def version(self) -> str:
+        """Authoritative version identifier for this model.
+
+        Prefers an explicit `version` recorded in the model's own metadata
+        sidecar. When the sidecar records none -- as the current AI#2
+        production metadata does not -- it falls back to the registered
+        model name, which is the identifier the model is genuinely
+        registered and served under. This never invents a version string:
+        a caller asking for a version gets a real one from real metadata,
+        or the real registry name.
+        """
+        recorded = self.metadata.get("version")
+        if isinstance(recorded, str) and recorded.strip():
+            return recorded.strip()
+        return self.name
 
     def validate(self, df: pd.DataFrame) -> None:
         missing = [f for f in self.feature_names if f not in df.columns]
@@ -71,12 +90,50 @@ def _load_xgb_json(path: Path, kind: str):
     return m
 
 
-def load_model(name: str, relative_path: str, kind: str = "classifier") -> LoadedModel:
+def _load_metadata(name: str, relative_path: str | None) -> dict:
+    """Read a model's optional metadata sidecar.
+
+    Returns {} when no sidecar is configured or the file is absent --
+    metadata is supplementary and its absence must never block inference.
+    A sidecar that exists but cannot be parsed is treated as a real
+    deployment fault rather than silently ignored, because reporting a
+    fallback version while a metadata file is actually present and broken
+    would be more misleading than failing loudly.
+    """
+    if not relative_path:
+        return {}
+
+    meta_path = ROOT / relative_path
+    if not meta_path.exists():
+        return {}
+
+    try:
+        data = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        raise SchemaValidationError(
+            f"Model '{name}' metadata sidecar at {meta_path} could not be read: {e}"
+        )
+
+    if not isinstance(data, dict):
+        raise SchemaValidationError(
+            f"Model '{name}' metadata sidecar at {meta_path} is not a JSON object."
+        )
+
+    return data
+
+
+def load_model(
+    name: str,
+    relative_path: str,
+    kind: str = "classifier",
+    metadata_path: str | None = None,
+) -> LoadedModel:
     """Load (or return a cached) model by a logical name.
 
     relative_path is relative to the repository root. Raises FileNotFoundError
     if the model file does not exist -- this function never fabricates a
-    model or falls back to a default.
+    model or falls back to a default. metadata_path optionally points at a
+    JSON sidecar carrying supplementary model metadata (see LoadedModel.version).
     """
     if name in _CACHE:
         return _CACHE[name]
@@ -94,7 +151,13 @@ def load_model(name: str, relative_path: str, kind: str = "classifier") -> Loade
             "cannot safely validate inputs against it."
         )
 
-    loaded = LoadedModel(name=name, path=path, feature_names=feature_names, model=model)
+    loaded = LoadedModel(
+        name=name,
+        path=path,
+        feature_names=feature_names,
+        model=model,
+        metadata=_load_metadata(name, metadata_path),
+    )
     _CACHE[name] = loaded
     return loaded
 
@@ -118,6 +181,7 @@ REGISTRY = {
     "ai2_baseline_production": {
         "path": settings.ai2_production_model_path,
         "kind": "classifier",
+        "metadata_path": settings.ai2_production_metadata_path,
         "description": "AI#2: production inundation-risk baseline (Exp_A_Baseline "
                         "architecture, refit on all available class-0/1 ground truth). "
                         "See models/production/ai2_baseline_metadata.json for details -- "
@@ -131,4 +195,4 @@ def load_registered(name: str) -> LoadedModel:
     if name not in REGISTRY:
         raise KeyError(f"'{name}' is not a registered model. Known models: {list(REGISTRY)}")
     entry = REGISTRY[name]
-    return load_model(name, entry["path"], entry["kind"])
+    return load_model(name, entry["path"], entry["kind"], entry.get("metadata_path"))

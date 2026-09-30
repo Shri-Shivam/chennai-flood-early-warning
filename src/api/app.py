@@ -240,31 +240,46 @@ def predict_live_inundation(request: LiveWeatherRequest):
     Chains: Open-Meteo → AI#1 feature engineering → AI#1 rainfall prediction →
     extract rain_1h..rain_24h features → AI#2 spatial inundation prediction
     for all cells in the study area.
+
+    The live weather/AI#1 stage runs exactly once per request; its result is
+    reused for both the AI#2 spatial inference and the rainfall_probability
+    reported in the response.
     """
     try:
         # Import here to avoid circular dependencies
-        from src.services.spatial_ai2_service import predict_spatial_inundation_from_weather
-        from src.services.weather_to_ai1_service import ChennaiPoint
-
-        # Execute the live weather → AI#1 → AI#2 chain
-        spatial_predictions = predict_spatial_inundation_from_weather(
-            point=ChennaiPoint(latitude=request.latitude, longitude=request.longitude),
-            past_days=request.past_days,
-            forecast_days=request.forecast_days
+        from src.services.spatial_ai2_service import predict_spatial_inundation
+        from src.services.weather_to_ai1_service import (
+            ChennaiPoint,
+            predict_rainfall_from_weather,
         )
 
-        # We also need to get the AI#1 prediction to include in the response
-        from src.services.weather_to_ai1_service import predict_rainfall_from_weather
+        point = ChennaiPoint(latitude=request.latitude, longitude=request.longitude)
+
+        # Stage 1: live weather → AI#1, executed once per request. This single
+        # result feeds both stages below. (This handler previously reached
+        # AI#1 twice -- once inside predict_spatial_inundation_from_weather and
+        # once directly here -- which duplicated the Open-Meteo fetch and the
+        # AI#1 inference on every call.)
         weather_result = predict_rainfall_from_weather(
-            point=ChennaiPoint(latitude=request.latitude, longitude=request.longitude),
+            point=point,
             past_days=request.past_days,
             forecast_days=request.forecast_days
         )
+
+        # Stage 2: AI#2 spatial inference over the full spatial dataset,
+        # reusing the AI#1 rainfall features already computed above.
+        spatial_predictions = predict_spatial_inundation(
+            weather_features=weather_result.features
+        )
+
+        # Report the version of the AI#2 model actually registered and serving
+        # this request, rather than a literal that could drift from the registry.
+        model_version = load_registered("ai2_baseline_production").version
 
         # Convert to response format
         from datetime import datetime
         return LiveInundationResponse(
-            model_version="ai2_baseline_production",  # Hardcoded for now, could be made dynamic
+            model_version=model_version,
             rainfall_probability=weather_result.significant_rainfall_probability,
             timestamp=datetime.now().isoformat(),
             cells=[
